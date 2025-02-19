@@ -1,0 +1,10 @@
+[
+  {
+    "openai": {
+      "env": "OPENAI_API_KEY"
+    },
+    "google": {
+      "env": "GEMINI_API_KEY"
+    }
+  }
+]
