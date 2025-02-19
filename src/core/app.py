@@ -3,6 +3,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from core.models import AssetsModels
+from core.routers.router_chat_completions import ChatCompletionsRouter
 from core.routers.router_models import ModelsRouter
 
 
@@ -40,7 +41,7 @@ class App(FastAPI):
     def _routers(self):
         return [
             ModelsRouter(self._a_models),
-            # CompletionRouter(self._a_models),
+            ChatCompletionsRouter(self._a_models),
         ]
 
 class NoCacheMiddleware(BaseHTTPMiddleware):

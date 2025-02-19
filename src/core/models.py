@@ -5,7 +5,7 @@ from typing import List, Optional, Dict
 from dataclasses import dataclass
 from pathlib import Path
 
-from core.logger import error
+from core.logger import warn
 
 
 __all__ = ["AssetsModels", "ModelInfo", "get_assets_models", "resolve_model_record"]
@@ -79,11 +79,11 @@ def get_model_list(base_dir: Path) -> List[ModelInfo]:
     filtered_models = []
     for m in all_models:
         if not (p := next((p for p in providers if p.name == m.provider), None)):
-            error(f"model {m.name}: provider {m.provider} not found. SKIPPING")
+            warn(f"model {m.name}: provider {m.provider} not found. SKIPPING")
             continue
 
         if p.env and not os.environ.get(p.env):
-            error(f"model {m.name}: provider {m.provider} env {p.env} not set. SKIPPING")
+            warn(f"model {m.name}: provider {m.provider} env {p.env} not set. SKIPPING")
             continue
 
         filtered_models.append(m)
