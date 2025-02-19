@@ -16,6 +16,7 @@ class ModelProviderInfo:
     name: str
     env: Optional[str]
 
+
 @dataclass
 class ModelInfo:
     name: str

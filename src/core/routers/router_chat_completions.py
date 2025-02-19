@@ -17,23 +17,22 @@ from core.routers.chat_models import ChatPost, ChatMessage
 async def litellm_completion_stream(
         model_name: str,
         messages: List[ChatMessage],
-        model_record: ModelInfo,
+        _model_record: ModelInfo,
         post: ChatPost
 ):
     prefix, postfix = "data: ", "\n\n"
+    finish_reason = None
     try:
-        max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
         stream = await litellm.acompletion(
             model=model_name, messages=messages, stream=True,
             temperature=post.temperature, top_p=post.top_p,
-            max_tokens=max_tokens,
+            max_tokens=post.max_tokens,
             tools=post.tools,
             tool_choice=post.tool_choice,
             stop=post.stop if post.stop else None,
             n=post.n,
         )
 
-        finish_reason = None
         async for chunk in stream:
             try:
                 data = chunk.model_dump()
@@ -53,15 +52,14 @@ async def litellm_completion_stream(
 async def litellm_completion_not_stream(
         model_name: str,
         messages: List[ChatMessage],
-        model_record: ModelInfo,
+        _model_record: ModelInfo,
         post: ChatPost
 ):
     try:
-        max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
         response = await litellm.acompletion(
             model=model_name, messages=messages, stream=False,
             temperature=post.temperature, top_p=post.top_p,
-            max_tokens=max_tokens,
+            max_tokens=post.max_tokens,
             tools=post.tools,
             tool_choice=post.tool_choice,
             stop=post.stop if post.stop else None,
@@ -98,6 +96,11 @@ class ChatCompletionsRouter(AuthRouter):
         if model_record.resolve_as not in litellm.model_list:
             warn(f"model {model_record.name} not in litellm.model_list")
         info(f"model resolve {model_record.name} -> {model_record.resolve_as}")
+
+        max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
+        if post.max_tokens != max_tokens:
+            info(f"model {model_record.name} max_tokens {post.max_tokens} -> {max_tokens}")
+            post.max_tokens = max_tokens
 
         response_streamer = litellm_completion_stream(
             model_record.resolve_as,
