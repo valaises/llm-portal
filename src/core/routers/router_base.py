@@ -1,10 +1,12 @@
 import json
 import time
+import re
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from fastapi.responses import Response
 
 from core.models import AssetsModels
+from core.globals import API_KEY
 
 
 __all__ = ["BaseRouter"]
@@ -17,8 +19,12 @@ class AuthRouter(APIRouter):
     def _check_auth(self, authorization: str = None) -> bool:
         if not authorization or not authorization.startswith("Bearer "):
             return False
-        # Add more sophisticated auth checking here if needed
-        return True
+
+        match = re.match(r"^Bearer\s+(.+)$", authorization)
+        if not match:
+            return False
+        api_key = match.group(1)
+        return api_key == API_KEY
 
     def _auth_error_response(self):
         return Response(
@@ -45,7 +51,7 @@ class BaseRouter(AuthRouter):
 
         self.add_api_route("/v1/models", self._models, methods=["GET"])
 
-    async def _models(self, authorization: str = None):
+    async def _models(self, authorization: str = Header(None)):
         if not self._check_auth(authorization):
             return self._auth_error_response()
 
@@ -65,4 +71,4 @@ class BaseRouter(AuthRouter):
             ]
         }
 
-        return Response(content=json.dumps(data, indent=4), media_type="application/json")
+        return Response(content=json.dumps(data, indent=2), media_type="application/json")

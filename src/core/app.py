@@ -9,7 +9,6 @@ from core.routers.router_base import BaseRouter
 __all__ = ["App"]
 
 
-
 class App(FastAPI):
     def __init__(
             self,
