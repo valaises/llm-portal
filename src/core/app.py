@@ -3,7 +3,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from core.models import AssetsModels
-from core.routers.router_base import BaseRouter
+from core.routers.router_models import ModelsRouter
 
 
 __all__ = ["App"]
@@ -39,7 +39,7 @@ class App(FastAPI):
 
     def _routers(self):
         return [
-            BaseRouter(self._a_models),
+            ModelsRouter(self._a_models),
             # CompletionRouter(self._a_models),
         ]
 
