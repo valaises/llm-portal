@@ -1,12 +1,33 @@
-from typing import List, Optional, Union, Literal
+from typing import List, Optional, Union, Literal, Dict, Any
 from pydantic import BaseModel, Field, confloat, conint
 
 
 class ChatMessage(BaseModel):
-    role: Literal["system", "developer", "user", "assistant", "function"]
-    content: str
+    role: Literal["system", "user", "assistant", "tool"]
+    content: Union[str, List[Any]]
+
+
+class ChatMessageSystem(ChatMessage):
+    role: Literal["system", "developer"]
     name: Optional[str] = None
-    function_call: Optional[dict] = None
+
+
+class ChatMessageUser(ChatMessage):
+    role: Literal["user"]
+    name: Optional[str] = None
+
+
+class ChatMessageAssistant(ChatMessage):
+    role: Literal["assistant"]
+    refusal: Optional[str] = None
+    name: Optional[str] = None
+    audio: Optional[Any] = None
+    tool_calls: Optional[List[Dict]] = None
+
+
+class ChatMessageToolCall(ChatMessage):
+    role: Literal["tool"]
+    tool_call_id: Optional[str] = None
 
 
 class ChatFunctionParameter(BaseModel):
@@ -34,7 +55,7 @@ def default_modalities() -> List[str]:
 class ChatPost(BaseModel):
     # Required fields
     model: str
-    messages: List[ChatMessage]
+    messages: List[Union[ChatMessageSystem, ChatMessageUser, ChatMessageAssistant, ChatMessageToolCall]]
 
     # Optional fields with defaults
     temperature: Optional[confloat(ge=0, le=2)] = Field(default=1)

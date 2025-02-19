@@ -1,22 +1,22 @@
 import json
 from http.client import HTTPException
 
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 import litellm
 
 from fastapi import Header, HTTPException
 from fastapi.responses import StreamingResponse
 
-from core.logger import warn, info
+from core.logger import warn, info, error
 from core.models import AssetsModels, ModelInfo
 from core.routers.router_auth import AuthRouter
-from core.routers.chat_models import ChatPost
+from core.routers.chat_models import ChatPost, ChatMessage
 
 
 async def litellm_completion_stream(
         model_name: str,
-        messages: List[Dict],
+        messages: List[ChatMessage],
         model_record: ModelInfo,
         post: ChatPost
 ):
@@ -40,19 +40,19 @@ async def litellm_completion_stream(
                 choice0 = data["choices"][0]
                 finish_reason = choice0["finish_reason"]
             except Exception as e:
-                warn(f"error in litellm_completion_stream: {e}")
+                error(f"error in litellm_completion_stream: {e}")
                 data = {"choices": [{"finish_reason": finish_reason}]}
 
             yield prefix + json.dumps(data) + postfix
     except Exception as e:
         err_msg = f"error in litellm_completion_stream: {e}"
-        warn(err_msg)
+        error(err_msg)
         yield prefix + json.dumps({"error": err_msg}) + postfix
 
 
 async def litellm_completion_not_stream(
         model_name: str,
-        messages: List[Dict],
+        messages: List[ChatMessage],
         model_record: ModelInfo,
         post: ChatPost
 ):
@@ -72,7 +72,7 @@ async def litellm_completion_not_stream(
 
     except Exception as e:
         err_msg = f"error in litellm_completion_not_stream: {e}"
-        warn(err_msg)
+        error(err_msg)
         yield json.dumps({"error": err_msg})
 
 
@@ -85,17 +85,11 @@ class ChatCompletionsRouter(AuthRouter):
         self._a_models = a_models
         super().__init__(*args, **kwargs)
 
-        self.add_api_route("/v1/chat/completions", self._chat_completion, methods=["POST"])
+        self.add_api_route("/v1/chat/completions", self._chat_completions, methods=["POST"])
 
-    async def _chat_completion(self, post: ChatPost, authorization: str = Header(None)):
+    async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
         if not self._check_auth(authorization):
             return self._auth_error_response()
-
-        messages: List[Dict] = []
-        for msg_dict in (msg.dict() for msg in post.messages): # type: ignore[List]
-            if "tool_calls" in msg_dict and not msg_dict["tool_calls"]:
-                del msg_dict["tool_calls"]
-            messages.append(msg_dict)
 
         model_record: Optional[ModelInfo] = next(model for model in self._a_models.model_list if model.name == post.model)
         if not model_record:
@@ -107,12 +101,12 @@ class ChatCompletionsRouter(AuthRouter):
 
         response_streamer = litellm_completion_stream(
             model_record.resolve_as,
-            messages,
+            post.messages,
             model_record,
             post,
         ) if post.stream else litellm_completion_not_stream(
             model_record.resolve_as,
-            messages,
+            post.messages,
             model_record,
             post,
         )
