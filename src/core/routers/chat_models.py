@@ -25,6 +25,17 @@ class ChatMessageAssistant(ChatMessage):
     tool_calls: Optional[List[Dict]] = None
 
 
+class ToolCallFunction(BaseModel):
+    name: str
+    arguments: str
+
+
+class ToolCall(BaseModel):
+    id: str
+    type: Literal["function"]
+    function:ToolCallFunction
+
+
 class ChatMessageToolCall(ChatMessage):
     role: Literal["tool"]
     tool_call_id: Optional[str] = None

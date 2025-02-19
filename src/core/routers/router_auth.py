@@ -1,7 +1,7 @@
 import re
 import json
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Header
 
 from core.globals import API_KEY
 
@@ -10,7 +10,7 @@ class AuthRouter(APIRouter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _check_auth(self, authorization: str = None) -> bool:
+    def _check_auth(self, authorization: Header = None) -> bool:
         if not authorization or not authorization.startswith("Bearer "):
             return False
 

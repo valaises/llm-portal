@@ -91,9 +91,12 @@ def get_model_list(base_dir: Path) -> List[ModelInfo]:
     return filtered_models
 
 def get_assets_models(base_dir: Path) -> AssetsModels:
+    model_list = get_model_list(base_dir)
+    model_names = {m.name: m for m in model_list}
+    model_defaults = {k: v for k, v in get_model_defaults(base_dir).items() if v in model_names}
     return AssetsModels(
-        model_list=get_model_list(base_dir),
-        model_defaults=get_model_defaults(base_dir),
+        model_list=model_list,
+        model_defaults=model_defaults,
     )
 
 def get_model_defaults(base_dir: Path) -> Dict[str, str]:
