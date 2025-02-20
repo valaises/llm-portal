@@ -21,7 +21,7 @@ class AuthRouter(APIRouter):
             authorization: Header = None,
             accept_secret: bool = False
     ) -> bool:
-        if not authorization or not authorization.startswith("Bearer "):
+        if not authorization:
             return False
 
         match = re.match(r"^Bearer\s+(.+)$", authorization)
@@ -32,7 +32,7 @@ class AuthRouter(APIRouter):
         if api_key == SECRET_KEY and accept_secret:
             return True
 
-        data = await self.repository.list_keys()
+        data = await self.users_repository.list_keys()
         if any([d["api_key"] == api_key for d in data]):
             return True
 

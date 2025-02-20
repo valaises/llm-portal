@@ -1,5 +1,4 @@
 import sqlite3
-import re
 import asyncio
 from pathlib import Path
 
@@ -10,16 +9,38 @@ from contextlib import contextmanager
 from pydantic import BaseModel, EmailStr
 
 
+class UserCreatePost(BaseModel):
+    email: EmailStr
+
+
+class UserUpdatePost(BaseModel):
+    user_id: int
+    email: EmailStr
+
+
+class UserDeletePost(BaseModel):
+    user_id: int
+
+
+class ApiKeyListPost(BaseModel):
+    user_id: Optional[int] = None
+
+
 class ApiKeyCreatePost(BaseModel):
     api_key: Optional[str] = None
     scope: str
-    tenant: EmailStr
+    user_id: int
 
 
 class ApiKeyUpdatePost(BaseModel):
     api_key: str
+    user_id: int
     scope: Optional[str] = None
-    tenant: Optional[str] = None
+
+
+class ApiKeyDeletePost(BaseModel):
+    api_key: str
+    user_id: int
 
 
 class UsersRepository:
@@ -41,14 +62,25 @@ class UsersRepository:
             conn.close()
 
     def _init_db(self):
-        """Initialize SQLite database and create table if not exists."""
+        """Initialize SQLite database and create tables if not exists."""
         with self._get_db_connection() as conn:
+            # Create users table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT NOT NULL UNIQUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # Create api_keys table with foreign key to users
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_keys (
                     api_key TEXT PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
                     scope TEXT NOT NULL,
-                    tenant TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
                 )
             """)
             conn.commit()
@@ -58,16 +90,93 @@ class UsersRepository:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, partial(func, *args))
 
-    def _list_keys_sync(self) -> List[Dict]:
+    def _list_users_sync(self) -> List[Dict]:
+        """Synchronous version of list_users."""
+        with self._get_db_connection() as conn:
+            cursor = conn.execute("SELECT user_id, email, created_at FROM users")
+            return [
+                {
+                    "user_id": row[0],
+                    "email": row[1],
+                    "created_at": row[2]
+                }
+                for row in cursor.fetchall()
+            ]
+
+    def _create_user_sync(self, post: UserCreatePost) -> Optional[Dict]:
+        """Synchronous version of create_user."""
+        with self._get_db_connection() as conn:
+            try:
+                cursor = conn.execute(
+                    "INSERT INTO users (email) VALUES (?) RETURNING user_id, email, created_at",
+                    (post.email,)
+                )
+                row = cursor.fetchone()
+                conn.commit()
+                if row:
+                    return {
+                        "user_id": row[0],
+                        "email": row[1],
+                        "created_at": row[2]
+                    }
+                return None
+            except sqlite3.IntegrityError:
+                return None
+
+    def _update_user_sync(self, post: UserUpdatePost) -> Optional[Dict]:
+        """Synchronous version of update_user."""
+        with self._get_db_connection() as conn:
+            try:
+                cursor = conn.execute(
+                    """UPDATE users SET email = ? 
+                       WHERE user_id = ? 
+                       RETURNING user_id, email, created_at""",
+                    (post.email, post.user_id)
+                )
+                row = cursor.fetchone()
+                conn.commit()
+                if row:
+                    return {
+                        "user_id": row[0],
+                        "email": row[1],
+                        "created_at": row[2]
+                    }
+                return None
+            except sqlite3.IntegrityError:
+                return None
+
+    def _delete_user_sync(self, post: UserDeletePost) -> bool:
+        """Synchronous version of delete_user."""
+        with self._get_db_connection() as conn:
+            cursor = conn.execute(
+                "DELETE FROM users WHERE user_id = ?",
+                (post.user_id,)
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def _list_keys_sync(self, post: ApiKeyListPost) -> List[Dict]:
         """Synchronous version of list_keys."""
         with self._get_db_connection() as conn:
-            cursor = conn.execute("SELECT api_key, scope, tenant, created_at FROM api_keys")
+            query = """
+                SELECT k.api_key, k.scope, k.created_at, u.user_id, u.email 
+                FROM api_keys k
+                JOIN users u ON k.user_id = u.user_id
+            """
+            params = []
+
+            if post.user_id is not None:
+                query += " WHERE k.user_id = ?"
+                params.append(post.user_id)
+
+            cursor = conn.execute(query, params)
             return [
                 {
                     "api_key": row[0],
                     "scope": row[1],
-                    "tenant": row[2],
-                    "created_at": row[3]
+                    "created_at": row[2],
+                    "user_id": row[3],
+                    "user_email": row[4]
                 }
                 for row in cursor.fetchall()
             ]
@@ -76,62 +185,74 @@ class UsersRepository:
         """Synchronous version of create_key."""
         with self._get_db_connection() as conn:
             try:
+                # First check if user exists
+                cursor = conn.execute(
+                    "SELECT 1 FROM users WHERE user_id = ?",
+                    (post.user_id,)
+                )
+                if not cursor.fetchone():
+                    raise ValueError("User not found")
+
                 conn.execute(
-                    "INSERT INTO api_keys (api_key, scope, tenant) VALUES (?, ?, ?)",
-                    (post.api_key, post.scope, post.tenant)
+                    "INSERT INTO api_keys (api_key, scope, user_id) VALUES (?, ?, ?)",
+                    (post.api_key, post.scope, post.user_id)
                 )
                 conn.commit()
                 return True
             except sqlite3.IntegrityError:
                 return False
 
-    def _delete_key_sync(self, api_key: str) -> bool:
+    def _delete_key_sync(self, post: ApiKeyDeletePost) -> bool:
         """Synchronous version of delete_key."""
         with self._get_db_connection() as conn:
             cursor = conn.execute(
-                "DELETE FROM api_keys WHERE api_key = ?",
-                (api_key,)
+                "DELETE FROM api_keys WHERE api_key = ? AND user_id = ?",
+                (post.api_key, post.user_id)
             )
             conn.commit()
             return cursor.rowcount > 0
 
     def _update_key_sync(self, post: ApiKeyUpdatePost) -> bool:
         """Synchronous version of update_key."""
-        if post.tenant and not re.match(r"[^@]+@[^@]+\.[^@]+", post.tenant):
-            raise ValueError("Invalid tenant email")
-
-        updates = []
-        values = []
-        if post.scope:
-            updates.append("scope = ?")
-            values.append(post.scope)
-        if post.tenant:
-            updates.append("tenant = ?")
-            values.append(post.tenant)
-
-        if not updates:
+        if not post.scope:
             raise ValueError("No updates provided")
 
-        values.append(post.api_key)
-        update_query = f"UPDATE api_keys SET {', '.join(updates)} WHERE api_key = ?"
-
         with self._get_db_connection() as conn:
-            cursor = conn.execute(update_query, values)
+            cursor = conn.execute(
+                "UPDATE api_keys SET scope = ? WHERE api_key = ? AND user_id = ?",
+                (post.scope, post.api_key, post.user_id)
+            )
             conn.commit()
             return cursor.rowcount > 0
 
-    async def list_keys(self) -> List[Dict]:
-        """Get all API keys asynchronously."""
-        return await self._run_in_thread(self._list_keys_sync)
+    async def list_users(self) -> List[Dict]:
+        """Get all users asynchronously."""
+        return await self._run_in_thread(self._list_users_sync)
+
+    async def create_user(self, post: UserCreatePost) -> Optional[Dict]:
+        """Create a new user asynchronously."""
+        return await self._run_in_thread(self._create_user_sync, post)
+
+    async def update_user(self, post: UserUpdatePost) -> Optional[Dict]:
+        """Update a user asynchronously."""
+        return await self._run_in_thread(self._update_user_sync, post)
+
+    async def delete_user(self, post: UserDeletePost) -> bool:
+        """Delete a user asynchronously."""
+        return await self._run_in_thread(self._delete_user_sync, post)
+
+    async def list_keys(self, post: ApiKeyListPost) -> List[Dict]:
+        """Get API keys asynchronously."""
+        return await self._run_in_thread(self._list_keys_sync, post)
 
     async def create_key(self, post: ApiKeyCreatePost) -> bool:
         """Create a new API key asynchronously."""
         return await self._run_in_thread(self._create_key_sync, post)
 
-    async def delete_key(self, api_key: str) -> bool:
+    async def delete_key(self, post: ApiKeyDeletePost) -> bool:
         """Delete an API key asynchronously."""
-        return await self._run_in_thread(self._delete_key_sync, api_key)
+        return await self._run_in_thread(self._delete_key_sync, post)
 
     async def update_key(self, post: ApiKeyUpdatePost) -> bool:
-        """Update an API key's scope or tenant asynchronously."""
+        """Update an API key's scope asynchronously."""
         return await self._run_in_thread(self._update_key_sync, post)

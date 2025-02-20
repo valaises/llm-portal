@@ -30,6 +30,7 @@ class ModelsRouter(AuthRouter):
             ]
         ]
 
+        self.add_api_route("/v1/models", self._models, methods=["GET"])
         self.add_api_route("/v1/models/{model}", self._model_info, methods=["GET"])
 
     async def _models(self, authorization: str = Header(None)):
