@@ -89,7 +89,7 @@ class ChatCompletionsRouter(AuthRouter):
         if not self._check_auth(authorization):
             return self._auth_error_response()
 
-        model_record: Optional[ModelInfo] = resolve_model_record(post.mode, self._a_models)
+        model_record: Optional[ModelInfo] = resolve_model_record(post.model, self._a_models)
         if not model_record:
             raise HTTPException(status_code=404, detail=f"Model {post.model} not found")
 
