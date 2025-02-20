@@ -2,6 +2,7 @@
   {
     "gpt-4o": {
       "provider": "openai",
+      "backend": "litellm",
       "resolve_as": "gpt-4o-2024-11-20",
       "context_window": 128000,
       "max_output_tokens": 16384,
@@ -14,6 +15,7 @@
   {
     "gemini-2.0-flash": {
       "provider": "google",
+      "backend": "litellm",
       "resolve_as": "gemini/gemini-2.0-flash",
       "context_window": 1000000,
       "max_output_tokens": 32000,

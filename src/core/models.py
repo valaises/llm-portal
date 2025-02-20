@@ -21,6 +21,7 @@ class ModelProviderInfo:
 class ModelInfo:
     name: str
     provider: str
+    backend: str
     resolve_as: str
     context_window: int
     max_output_tokens: int
@@ -46,6 +47,7 @@ def _models_info(base_dir: Path) -> List[ModelInfo]:
         ModelInfo(
             name=model_name,
             provider=model_info["provider"],
+            backend=model_info["backend"],
             resolve_as=model_info["resolve_as"],
             context_window=model_info["context_window"],
             max_output_tokens=model_info["max_output_tokens"],

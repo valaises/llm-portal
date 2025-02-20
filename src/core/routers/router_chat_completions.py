@@ -102,16 +102,20 @@ class ChatCompletionsRouter(AuthRouter):
             info(f"model {model_record.name} max_tokens {post.max_tokens} -> {max_tokens}")
             post.max_tokens = max_tokens
 
-        response_streamer = litellm_completion_stream(
-            model_record.resolve_as,
-            post.messages,
-            model_record,
-            post,
-        ) if post.stream else litellm_completion_not_stream(
-            model_record.resolve_as,
-            post.messages,
-            model_record,
-            post,
-        )
+        if model_record.backend == "litellm":
+            response_streamer = litellm_completion_stream(
+                model_record.resolve_as,
+                post.messages,
+                model_record,
+                post,
+            ) if post.stream else litellm_completion_not_stream(
+                model_record.resolve_as,
+                post.messages,
+                model_record,
+                post,
+            )
+
+        else:
+            raise HTTPException(status_code=400, detail=f"Model {model_record.name}: Backend {model_record.backend} is not supported")
 
         return StreamingResponse(response_streamer, media_type="text/event-stream")
