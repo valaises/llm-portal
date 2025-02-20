@@ -99,7 +99,7 @@ class ChatCompletionsRouter(AuthRouter):
 
         if model_record.resolve_as not in litellm.model_list:
             warn(f"model {model_record.name} not in litellm.model_list")
-        info(f"model resolve {model_record.name} -> {model_record.resolve_as}")
+        info(f"model resolve {post.model} -> {model_record.resolve_as}")
 
         max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
         if post.max_tokens != max_tokens:
