@@ -9,7 +9,7 @@ from fastapi import Header, HTTPException
 from fastapi.responses import StreamingResponse
 
 from core.logger import warn, info, error
-from core.models import AssetsModels, ModelInfo
+from core.models import AssetsModels, ModelInfo, resolve_model_record
 from core.routers.router_auth import AuthRouter
 from core.routers.chat_models import ChatPost, ChatMessage
 
@@ -83,14 +83,13 @@ class ChatCompletionsRouter(AuthRouter):
         self._a_models = a_models
         super().__init__(*args, **kwargs)
 
-        for prefix in ["", "/v1"]:
-            self.add_api_route(f"{prefix}/chat/completions", self._chat_completions, methods=["POST"])
+        self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
 
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
         if not self._check_auth(authorization):
             return self._auth_error_response()
 
-        model_record: Optional[ModelInfo] = next(model for model in self._a_models.model_list if model.name == post.model)
+        model_record: Optional[ModelInfo] = resolve_model_record(post.mode, self._a_models)
         if not model_record:
             raise HTTPException(status_code=404, detail=f"Model {post.model} not found")
 

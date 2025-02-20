@@ -30,10 +30,7 @@ class ModelsRouter(AuthRouter):
             ]
         ]
 
-        for prefix in ["", "/v1"]:
-            self.add_api_route(f"{prefix}/models", self._models, methods=["GET"])
-            self.add_api_route(f"{prefix}/models/{{model}}", self._model_info, methods=["GET"])
-
+        self.add_api_route("/v1/models/{model}", self._model_info, methods=["GET"])
 
     async def _models(self, authorization: str = Header(None)):
         if not self._check_auth(authorization):
