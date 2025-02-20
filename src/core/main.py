@@ -11,7 +11,7 @@ from core.app import App
 
 
 def main():
-    assert SECRET_KEY, "LLM_PROXY_API_KEY is not set"
+    assert SECRET_KEY, "LLM_PROXY_SECRET is not set"
     init_logger(False)
     args = parse_args()
     init_logger(args.DEBUG)
