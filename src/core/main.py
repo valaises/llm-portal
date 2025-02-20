@@ -28,7 +28,7 @@ def main():
     app = App(
         db_dir,
         a_models,
-        # docs_url=None, redoc_url=None
+        docs_url=None, redoc_url=None
     )
 
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
