@@ -54,7 +54,6 @@ class UsersRepository:
 
     @contextmanager
     def _get_db_connection(self):
-        """Context manager for database connections."""
         conn = sqlite3.connect(self.db_path)
         try:
             yield conn
@@ -91,7 +90,6 @@ class UsersRepository:
         return await loop.run_in_executor(None, partial(func, *args))
 
     def _list_users_sync(self) -> List[Dict]:
-        """Synchronous version of list_users."""
         with self._get_db_connection() as conn:
             cursor = conn.execute("SELECT user_id, email, created_at FROM users")
             return [
@@ -104,7 +102,6 @@ class UsersRepository:
             ]
 
     def _create_user_sync(self, post: UserCreatePost) -> Optional[Dict]:
-        """Synchronous version of create_user."""
         with self._get_db_connection() as conn:
             try:
                 cursor = conn.execute(
@@ -124,7 +121,6 @@ class UsersRepository:
                 return None
 
     def _update_user_sync(self, post: UserUpdatePost) -> Optional[Dict]:
-        """Synchronous version of update_user."""
         with self._get_db_connection() as conn:
             try:
                 cursor = conn.execute(
@@ -146,7 +142,6 @@ class UsersRepository:
                 return None
 
     def _delete_user_sync(self, post: UserDeletePost) -> bool:
-        """Synchronous version of delete_user."""
         with self._get_db_connection() as conn:
             cursor = conn.execute(
                 "DELETE FROM users WHERE user_id = ?",
@@ -156,7 +151,6 @@ class UsersRepository:
             return cursor.rowcount > 0
 
     def _list_keys_sync(self, post: ApiKeyListPost) -> List[Dict]:
-        """Synchronous version of list_keys."""
         with self._get_db_connection() as conn:
             query = """
                 SELECT k.api_key, k.scope, k.created_at, u.user_id, u.email 
@@ -182,7 +176,6 @@ class UsersRepository:
             ]
 
     def _create_key_sync(self, post: ApiKeyCreatePost) -> bool:
-        """Synchronous version of create_key."""
         with self._get_db_connection() as conn:
             try:
                 # First check if user exists
@@ -203,7 +196,6 @@ class UsersRepository:
                 return False
 
     def _delete_key_sync(self, post: ApiKeyDeletePost) -> bool:
-        """Synchronous version of delete_key."""
         with self._get_db_connection() as conn:
             cursor = conn.execute(
                 "DELETE FROM api_keys WHERE api_key = ? AND user_id = ?",
@@ -213,7 +205,6 @@ class UsersRepository:
             return cursor.rowcount > 0
 
     def _update_key_sync(self, post: ApiKeyUpdatePost) -> bool:
-        """Synchronous version of update_key."""
         if not post.scope:
             raise ValueError("No updates provided")
 
@@ -226,33 +217,25 @@ class UsersRepository:
             return cursor.rowcount > 0
 
     async def list_users(self) -> List[Dict]:
-        """Get all users asynchronously."""
         return await self._run_in_thread(self._list_users_sync)
 
     async def create_user(self, post: UserCreatePost) -> Optional[Dict]:
-        """Create a new user asynchronously."""
         return await self._run_in_thread(self._create_user_sync, post)
 
     async def update_user(self, post: UserUpdatePost) -> Optional[Dict]:
-        """Update a user asynchronously."""
         return await self._run_in_thread(self._update_user_sync, post)
 
     async def delete_user(self, post: UserDeletePost) -> bool:
-        """Delete a user asynchronously."""
         return await self._run_in_thread(self._delete_user_sync, post)
 
     async def list_keys(self, post: ApiKeyListPost) -> List[Dict]:
-        """Get API keys asynchronously."""
         return await self._run_in_thread(self._list_keys_sync, post)
 
     async def create_key(self, post: ApiKeyCreatePost) -> bool:
-        """Create a new API key asynchronously."""
         return await self._run_in_thread(self._create_key_sync, post)
 
     async def delete_key(self, post: ApiKeyDeletePost) -> bool:
-        """Delete an API key asynchronously."""
         return await self._run_in_thread(self._delete_key_sync, post)
 
     async def update_key(self, post: ApiKeyUpdatePost) -> bool:
-        """Update an API key's scope asynchronously."""
         return await self._run_in_thread(self._update_key_sync, post)
