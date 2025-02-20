@@ -4,7 +4,7 @@ import json
 from fastapi import APIRouter, Response, Header
 
 from core.globals import SECRET_KEY
-from core.repositories.users_repository import UsersRepository
+from core.repositories.users_repository import UsersRepository, ApiKeyListPost
 
 
 class AuthRouter(APIRouter):
@@ -32,7 +32,7 @@ class AuthRouter(APIRouter):
         if api_key == SECRET_KEY and accept_secret:
             return True
 
-        data = await self.users_repository.list_keys()
+        data = await self.users_repository.list_keys(post=ApiKeyListPost())
         if any([d["api_key"] == api_key for d in data]):
             return True
 

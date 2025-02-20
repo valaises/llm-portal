@@ -1,5 +1,6 @@
 import json
 from http.client import HTTPException
+from queue import Queue
 
 from typing import List, Optional
 
@@ -78,14 +79,17 @@ class ChatCompletionsRouter(AuthRouter):
     def __init__(
             self,
             a_models: AssetsModels,
+            stats_q: Queue,
             *args, **kwargs
     ):
         self._a_models = a_models
+        self._stats_q = stats_q
         super().__init__(*args, **kwargs)
 
         self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
 
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
+        # todo: insert stats
         if not await self._check_auth(authorization):
             return self._auth_error_response()
 

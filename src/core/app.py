@@ -1,4 +1,4 @@
-from pathlib import Path
+from queue import Queue
 
 from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -17,13 +17,15 @@ __all__ = ["App"]
 class App(FastAPI):
     def __init__(
             self,
-            db_dir: Path,
             a_models: AssetsModels,
+            stats_q: Queue,
+            users_repository: UsersRepository,
             *args, **kwargs
     ):
         super().__init__(*args, **kwargs)
         self._a_models = a_models
-        self._users_repository = UsersRepository(db_dir / "users.db")
+        self._stats_q = stats_q
+        self._users_repository = users_repository
 
         self._setup_middlewares()
         self.add_event_handler("startup", self._startup_events)
@@ -52,6 +54,7 @@ class App(FastAPI):
             ),
             ChatCompletionsRouter(
                 self._a_models,
+                self._stats_q,
                 self._users_repository
             ),
             UsersRouter(
