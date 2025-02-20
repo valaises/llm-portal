@@ -1,0 +1,10 @@
+
+services:
+  app:
+    build: .
+    container_name: "llm_proxy"
+    env_file:
+      - .env
+    ports:
+      - "7012:7012"
+    restart: unless-stopped

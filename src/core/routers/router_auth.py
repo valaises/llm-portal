@@ -3,7 +3,7 @@ import json
 
 from fastapi import APIRouter, Response, Header
 
-from core.globals import API_KEY
+from core.globals import SECRET_KEY
 
 
 class AuthRouter(APIRouter):
@@ -19,7 +19,7 @@ class AuthRouter(APIRouter):
             return False
 
         api_key = match.group(1)
-        return api_key == API_KEY
+        return api_key == SECRET_KEY
 
     def _auth_error_response(self):
         return Response(

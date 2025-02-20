@@ -4,20 +4,23 @@ import uvloop
 import uvicorn
 
 from core.args import parse_args
-from core.logger import init_logger, info
+from core.logger import init_logger, info, error
 from core.models import get_assets_models
-from core.globals import BASE_DIR, API_KEY
+from core.globals import BASE_DIR, SECRET_KEY
 from core.app import App
 
 
 def main():
-    assert API_KEY, "LLM_PROXY_API_KEY is not set"
+    assert SECRET_KEY, "LLM_PROXY_API_KEY is not set"
     init_logger(False)
     args = parse_args()
     init_logger(args.DEBUG)
     info("logger initialized")
 
     a_models = get_assets_models(BASE_DIR)
+    if not a_models.model_list:
+        error("No models available. Exiting...")
+        quit(0)
 
     app = App(
         a_models,

@@ -83,7 +83,8 @@ class ChatCompletionsRouter(AuthRouter):
         self._a_models = a_models
         super().__init__(*args, **kwargs)
 
-        self.add_api_route("/v1/chat/completions", self._chat_completions, methods=["POST"])
+        for prefix in ["", "/v1"]:
+            self.add_api_route(f"{prefix}/chat/completions", self._chat_completions, methods=["POST"])
 
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
         if not self._check_auth(authorization):
