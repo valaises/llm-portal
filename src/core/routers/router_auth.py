@@ -31,7 +31,7 @@ class AuthRouter(APIRouter):
 
         api_key = match.group(1)
         if api_key == SECRET_KEY and accept_secret:
-            return {}
+            return {"api_key": api_key}
 
         data = await self.users_repository.list_keys(post=ApiKeyListPost())
 
