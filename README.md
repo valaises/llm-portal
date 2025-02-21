@@ -43,7 +43,7 @@ or, alternatively, you can use docker compose
 docker compose up -d
 ```
 
-## Installation, Local
+## Installation, local
 1. Install uv
 
 [about: uv - modern pip, pipx, poetry, venv replacement](https://docs.astral.sh/uv/getting-started/installation/)
@@ -157,3 +157,12 @@ python -m src.core.scripts.show_usage_stats
 |---------|----------|-----------|------------|-------------|--------------|-----------|------------------|
 | 4       | 4        | 76        | 44         | 0           | 0            | 8         | gpt-4o-2024-11-20 |
 | TOTAL   | 4        | 76        | 44         | 0           | 0            | 8         | ALL              |
+
+## License
+
+This project is licensed under a custom license that:
+- Allows free use for personal and non-commercial purposes
+- Requires explicit permission from the author for any commercial use
+- Requires attribution
+
+See the [LICENSE](LICENSE) file for details.
