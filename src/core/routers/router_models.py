@@ -19,7 +19,7 @@ class ModelsRouter(AuthRouter):
 
         self._all_models = [
             {
-                "model_name": m_name,
+                "id": m_name,
                 "object": "model",
                 "created": int(time.time()),
                 "owned_by": "system"
