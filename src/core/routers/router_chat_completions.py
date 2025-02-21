@@ -2,7 +2,7 @@ import json
 from http.client import HTTPException
 from queue import Queue
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import litellm
 
@@ -11,15 +11,31 @@ from fastapi.responses import StreamingResponse
 
 from core.logger import warn, info, error
 from core.models import AssetsModels, ModelInfo, resolve_model_record
+from core.repositories.stats_repository import UsageStatRecord
 from core.routers.router_auth import AuthRouter
 from core.routers.chat_models import ChatPost, ChatMessage
+
+
+def increment_stats_record(rec: UsageStatRecord, model_record: ModelInfo, usage: Dict):
+    try:
+        rec.tokens_in += usage["prompt_tokens"]
+        rec.tokens_out += usage["completion_tokens"]
+        try:
+            rec.dollars_in += round(usage["prompt_tokens"] / 1_000_000 * model_record.dollars_input, 5)
+            rec.dollars_out += round(usage["completion_tokens"] / 1_000_000 * model_record.dollars_output, 5)
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 
 async def litellm_completion_stream(
         model_name: str,
         messages: List[ChatMessage],
-        _model_record: ModelInfo,
-        post: ChatPost
+        model_record: ModelInfo,
+        post: ChatPost,
+        stats_record: UsageStatRecord,
+        stats_q: Queue,
 ):
     prefix, postfix = "data: ", "\n\n"
     finish_reason = None
@@ -32,6 +48,9 @@ async def litellm_completion_stream(
             tool_choice=post.tool_choice,
             stop=post.stop if post.stop else None,
             n=post.n,
+            stream_options={
+                "include_usage": True,
+            }
         )
 
         async for chunk in stream:
@@ -39,6 +58,12 @@ async def litellm_completion_stream(
                 data = chunk.model_dump()
                 choice0 = data["choices"][0]
                 finish_reason = choice0["finish_reason"]
+
+                if usage := data.get("usage"):
+                    increment_stats_record(stats_record, model_record, usage)
+                if finish_reason:
+                    stats_record.finish_reason = finish_reason
+
             except Exception as e:
                 error(f"error in litellm_completion_stream: {e}")
                 data = {"choices": [{"finish_reason": finish_reason}]}
@@ -48,13 +73,17 @@ async def litellm_completion_stream(
         err_msg = f"error in litellm_completion_stream: {e}"
         error(err_msg)
         yield prefix + json.dumps({"error": err_msg}) + postfix
+    finally:
+        stats_q.put(stats_record)
 
 
 async def litellm_completion_not_stream(
         model_name: str,
         messages: List[ChatMessage],
-        _model_record: ModelInfo,
-        post: ChatPost
+        model_record: ModelInfo,
+        post: ChatPost,
+        stats_record: UsageStatRecord,
+        stats_q: Queue,
 ):
     try:
         response = await litellm.acompletion(
@@ -67,6 +96,11 @@ async def litellm_completion_not_stream(
             n=post.n,
         )
         response_dict = response.model_dump()
+
+        if usage := response_dict.get("usage"):
+            increment_stats_record(stats_record, model_record, usage)
+        stats_q.put(stats_record)
+
         yield json.dumps(response_dict)
 
     except Exception as e:
@@ -89,8 +123,8 @@ class ChatCompletionsRouter(AuthRouter):
         self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
 
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
-        # todo: insert stats
-        if not await self._check_auth(authorization):
+        user = await self._check_auth(authorization)
+        if not user:
             return self._auth_error_response()
 
         model_record: Optional[ModelInfo] = resolve_model_record(post.model, self._a_models)
@@ -100,6 +134,17 @@ class ChatCompletionsRouter(AuthRouter):
         if model_record.resolve_as not in litellm.model_list:
             warn(f"model {model_record.name} not in litellm.model_list")
         info(f"model resolve {post.model} -> {model_record.resolve_as}")
+
+        stats_record = UsageStatRecord(
+            user_id=user["user_id"],
+            api_key=user["api_key"],
+            model=model_record.resolve_as,
+            tokens_in=0,
+            tokens_out=0,
+            dollars_in=0,
+            dollars_out=0,
+            messages_cnt=len(post.messages),
+        )
 
         max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
         if post.max_tokens != max_tokens:
@@ -112,11 +157,15 @@ class ChatCompletionsRouter(AuthRouter):
                 post.messages,
                 model_record,
                 post,
+                stats_record,
+                self._stats_q,
             ) if post.stream else litellm_completion_not_stream(
                 model_record.resolve_as,
                 post.messages,
                 model_record,
                 post,
+                stats_record,
+                self._stats_q,
             )
 
         else:

@@ -1,5 +1,6 @@
 import re
 import json
+from typing import Optional, Dict
 
 from fastapi import APIRouter, Response, Header
 
@@ -20,23 +21,25 @@ class AuthRouter(APIRouter):
             self,
             authorization: Header = None,
             accept_secret: bool = False
-    ) -> bool:
+    ) -> Optional[Dict]:
         if not authorization:
-            return False
+            return
 
         match = re.match(r"^Bearer\s+(.+)$", authorization)
         if not match:
-            return False
+            return
 
         api_key = match.group(1)
         if api_key == SECRET_KEY and accept_secret:
-            return True
+            return {}
 
         data = await self.users_repository.list_keys(post=ApiKeyListPost())
-        if any([d["api_key"] == api_key for d in data]):
-            return True
 
-        return False
+        for d in data:
+            if d["api_key"] == api_key:
+                return d
+
+        return
 
     def _auth_error_response(self):
         return Response(
