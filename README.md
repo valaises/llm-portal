@@ -147,6 +147,8 @@ You can use DB Viewer to access SQLite DB or use a CLI tool
 ```bash
 docker exec -it llm_proxy bash
 ```
+
+Execute CLI tool
 ```bash
 python -m src.core.scripts.show_usage_stats
 ```
