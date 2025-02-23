@@ -9,7 +9,8 @@
       "dollars_input": 2.5,
       "dollars_output": 10.0,
       "tpm": 30000,
-      "rpm": 500
+      "rpm": 500,
+      "known_as": ["chatgpt-4o-latest"]
     }
   },
   {
@@ -22,7 +23,36 @@
       "dollars_input": 0.1,
       "dollars_output": 0.4,
       "tpm": 4000000,
-      "rpm": 2000
+      "rpm": 2000,
+      "known_as": []
+    }
+  },
+  {
+    "deepseek-r1": {
+      "provider": "togetherai",
+      "backend": "litellm",
+      "resolve_as": "together_ai/deepseek-ai/DeepSeek-R1",
+      "context_window": 128000,
+      "max_output_tokens": 32000,
+      "dollars_input": 3,
+      "dollars_output": 7,
+      "tpm": -1,
+      "rpm": 600,
+      "known_as": []
+    }
+  },
+  {
+    "claude-3.5-sonnet": {
+      "provider": "anthropic",
+      "backend": "litellm",
+      "resolve_as": "anthropic/claude-3-5-sonnet-20241022",
+      "context_window": 200000,
+      "max_output_tokens": 8192,
+      "dollars_input": 3,
+      "dollars_output": 15,
+      "tpm": 40000,
+      "rpm": 50,
+      "known_as": []
     }
   }
 ]

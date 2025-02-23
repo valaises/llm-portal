@@ -29,6 +29,7 @@ class ModelInfo:
     dollars_output: int
     tokens_per_minute: Optional[int]
     request_per_minute: Optional[int]
+    known_as: List[str]
 
 
 @dataclass
@@ -55,6 +56,7 @@ def _models_info(base_dir: Path) -> List[ModelInfo]:
             dollars_output=model_info["dollars_output"],
             tokens_per_minute=model_info.get("tpm"),
             request_per_minute=model_info.get("rpm"),
+            known_as=model_info["known_as"],
         )
         for model_data in models_json
         for model_name, model_info in model_data.items()
@@ -109,8 +111,11 @@ def get_model_defaults(base_dir: Path) -> Dict[str, str]:
     defaults_json = json.loads(defaults_file.read_text())
     return defaults_json
 
-def resolve_model_record(model_name: str, a_models: AssetsModels) -> ModelInfo:
+def resolve_model_record(model_name: str, a_models: AssetsModels) -> Optional[ModelInfo]:
+    if not model_name:
+        return
+
     model_name = a_models.model_defaults.get(model_name, model_name)
     for model in a_models.model_list:
-        if model.name == model_name:
+        if model.name == model_name or model_name in model.known_as:
             return model

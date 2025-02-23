@@ -5,6 +5,12 @@
     },
     "google": {
       "env": "GEMINI_API_KEY"
+    },
+    "anthropic": {
+      "env": "ANTHROPIC_API_KEY"
+    },
+    "togetherai": {
+      "env": "TOGETHERAI_API_KEY"
     }
   }
 ]

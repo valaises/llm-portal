@@ -1,5 +1,3 @@
 {
-  "default": "gpt-4o",
-  "default-openai": "gpt-4o",
-  "default-gemini": "gemini-2.0-flash"
+  "default": "gpt-4o"
 }
