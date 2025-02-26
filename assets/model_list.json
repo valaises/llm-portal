@@ -42,6 +42,20 @@
     }
   },
   {
+    "claude-3.7-sonnet": {
+      "provider": "anthropic",
+      "backend": "litellm",
+      "resolve_as": "anthropic/claude-3-7-sonnet-20250219",
+      "context_window": 200000,
+      "max_output_tokens": 8192,
+      "dollars_input": 3,
+      "dollars_output": 15,
+      "tpm": 40000,
+      "rpm": 50,
+      "known_as": []
+    }
+  },
+  {
     "claude-3.5-sonnet": {
       "provider": "anthropic",
       "backend": "litellm",
@@ -52,7 +66,8 @@
       "dollars_output": 15,
       "tpm": 40000,
       "rpm": 50,
-      "known_as": []
+      "known_as": [],
+      "hidden": true
     }
   }
 ]

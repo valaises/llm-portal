@@ -26,7 +26,7 @@ class ModelsRouter(AuthRouter):
             }
             for m_name in [
                 *self._a_models.model_defaults.keys(),
-                *[i.name for i in self._a_models.model_list]
+                *[i.name for i in self._a_models.model_list if not i.hidden]
             ]
         ]
 

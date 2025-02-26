@@ -30,6 +30,7 @@ class ModelInfo:
     tokens_per_minute: Optional[int]
     request_per_minute: Optional[int]
     known_as: List[str]
+    hidden: bool
 
 
 @dataclass
@@ -57,6 +58,7 @@ def _models_info(base_dir: Path) -> List[ModelInfo]:
             tokens_per_minute=model_info.get("tpm"),
             request_per_minute=model_info.get("rpm"),
             known_as=model_info["known_as"],
+            hidden=model_info.get("hidden", False),
         )
         for model_data in models_json
         for model_name, model_info in model_data.items()
