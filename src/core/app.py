@@ -36,7 +36,10 @@ class App(FastAPI):
     def _setup_middlewares(self):
         self.add_middleware(
             CORSMiddleware, # type: ignore[arg-type]
-            allow_origins=["http://localhost:5173"],
+            allow_origins=[
+                "http://localhost:5173",
+                "http://localhost:5174",
+            ],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
