@@ -17,6 +17,18 @@ class AuthRouter(APIRouter):
         super().__init__(*args, **kwargs)
         self.users_repository = users_repository
 
+        self.add_api_route("/v1/auth", self._auth, methods=["GET"])
+
+    async def _auth(self, authorization: str = Header(None)) -> Response:
+        auth = await self._check_auth(authorization)
+        if not auth:
+            return self._auth_error_response()
+
+        return Response(
+            content=json.dumps({"auth": auth}),
+            media_type="application/json"
+        )
+
     async def _check_auth(
             self,
             authorization: Header = None,
