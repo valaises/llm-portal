@@ -178,18 +178,6 @@ wheels = [
 name = "core"
 version = "0.1.0"
 source = { virtual = "src/core" }
-dependencies = [
-    { name = "more-itertools" },
-    { name = "prompt-toolkit" },
-    { name = "tabulate" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "more-itertools", specifier = ">=10.6.0" },
-    { name = "prompt-toolkit", specifier = ">=3.0.50" },
-    { name = "tabulate", specifier = ">=0.9.0" },
-]
 
 [[package]]
 name = "distro"
@@ -472,7 +460,11 @@ source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "litellm" },
+    { name = "more-itertools" },
+    { name = "openai" },
+    { name = "prompt-toolkit" },
     { name = "pydantic", extra = ["email"] },
+    { name = "tabulate" },
     { name = "termcolor" },
     { name = "uvicorn" },
     { name = "uvloop" },
@@ -482,7 +474,11 @@ dependencies = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "litellm", specifier = ">=1.61.9" },
+    { name = "more-itertools", specifier = ">=10.6.0" },
+    { name = "openai", specifier = ">=1.63.2" },
+    { name = "prompt-toolkit", specifier = ">=3.0.50" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.10.6" },
+    { name = "tabulate", specifier = ">=0.9.0" },
     { name = "termcolor", specifier = ">=2.5.0" },
     { name = "uvicorn", specifier = ">=0.34.0" },
     { name = "uvloop", specifier = ">=0.21.0" },

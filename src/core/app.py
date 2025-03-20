@@ -7,6 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 from core.models import AssetsModels
 from core.repositories.users_repository import UsersRepository
 from core.routers.router_chat_completions import ChatCompletionsRouter
+from core.routers.router_files import FilesRouter
 from core.routers.router_models import ModelsRouter
 from core.routers.router_users import UsersRouter
 
@@ -36,11 +37,7 @@ class App(FastAPI):
     def _setup_middlewares(self):
         self.add_middleware(
             CORSMiddleware, # type: ignore[arg-type]
-            allow_origins=[
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "http://localhost:7016",
-            ],
+            allow_origins=["*"],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
@@ -62,6 +59,9 @@ class App(FastAPI):
                 self._users_repository
             ),
             UsersRouter(
+                self._users_repository
+            ),
+            FilesRouter(
                 self._users_repository
             ),
         ]
