@@ -7,7 +7,6 @@ from starlette.middleware.cors import CORSMiddleware
 from core.models import AssetsModels
 from core.repositories.users_repository import UsersRepository
 from core.routers.router_chat_completions import ChatCompletionsRouter
-from core.routers.router_files import FilesRouter
 from core.routers.router_models import ModelsRouter
 from core.routers.router_users import UsersRouter
 
@@ -59,9 +58,6 @@ class App(FastAPI):
                 self._users_repository
             ),
             UsersRouter(
-                self._users_repository
-            ),
-            FilesRouter(
                 self._users_repository
             ),
         ]
