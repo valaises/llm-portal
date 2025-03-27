@@ -13,7 +13,7 @@ from core.logger import warn, info, error
 from core.models import AssetsModels, ModelInfo, resolve_model_record
 from core.repositories.stats_repository import UsageStatRecord
 from core.routers.router_auth import AuthRouter
-from core.routers.chat_models import ChatPost, ChatMessage
+from chat_tools.chat_models import ChatPost, ChatMessage
 
 
 def increment_stats_record(rec: UsageStatRecord, model_record: ModelInfo, usage: Dict):
@@ -123,6 +123,7 @@ class ChatCompletionsRouter(AuthRouter):
         self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
 
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
+        info(post.tools)
         user = await self._check_auth(authorization)
         if not user:
             return self._auth_error_response()

@@ -154,6 +154,14 @@ wheels = [
 ]
 
 [[package]]
+name = "chat-tools"
+version = "0.1.0"
+source = { git = "https://github.com/valaises/chat_tools.git#ce56cd686db84dec14bd61cacbb9dd0b2ff8646f" }
+dependencies = [
+    { name = "pydantic" },
+]
+
+[[package]]
 name = "click"
 version = "8.1.8"
 source = { registry = "https://pypi.org/simple" }
@@ -458,6 +466,7 @@ name = "llm-proxy"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "chat-tools" },
     { name = "fastapi" },
     { name = "litellm" },
     { name = "more-itertools" },
@@ -472,6 +481,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "chat-tools", git = "https://github.com/valaises/chat_tools.git" },
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "litellm", specifier = ">=1.61.9" },
     { name = "more-itertools", specifier = ">=10.6.0" },
