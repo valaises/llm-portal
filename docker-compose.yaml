@@ -3,10 +3,17 @@ services:
   app:
     build: .
     container_name: "llm_proxy"
-    env_file:
-      - .env
+    environment:
+      - LLM_PROXY_SECRET="secret"
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - TOGETHERAI_API_KEY=${TOGETHERAI_API_KEY}
     ports:
       - "7012:7012"
     volumes:
-      - ./db:/app/db
+      - llm-proxy-db:/app/db
     restart: unless-stopped
+
+volumes:
+  llm-proxy-db:

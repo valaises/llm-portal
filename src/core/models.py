@@ -36,8 +36,6 @@ class ModelInfo:
 @dataclass
 class AssetsModels:
     model_list: List[ModelInfo]
-    model_defaults: Dict[str, str]
-
 
 def _models_info(base_dir: Path) -> List[ModelInfo]:
     models_file = base_dir.joinpath("assets").joinpath("model_list.json")
@@ -97,14 +95,13 @@ def get_model_list(base_dir: Path) -> List[ModelInfo]:
 
     return filtered_models
 
+
 def get_assets_models(base_dir: Path) -> AssetsModels:
     model_list = get_model_list(base_dir)
-    model_names = {m.name: m for m in model_list}
-    model_defaults = {k: v for k, v in get_model_defaults(base_dir).items() if v in model_names}
     return AssetsModels(
-        model_list=model_list,
-        model_defaults=model_defaults,
+        model_list=model_list
     )
+
 
 def get_model_defaults(base_dir: Path) -> Dict[str, str]:
     defaults_file = base_dir.joinpath("assets").joinpath("model_defaults.json")
@@ -113,11 +110,11 @@ def get_model_defaults(base_dir: Path) -> Dict[str, str]:
     defaults_json = json.loads(defaults_file.read_text())
     return defaults_json
 
+
 def resolve_model_record(model_name: str, a_models: AssetsModels) -> Optional[ModelInfo]:
     if not model_name:
         return
 
-    model_name = a_models.model_defaults.get(model_name, model_name)
     for model in a_models.model_list:
         if model.name == model_name or model_name in model.known_as:
             return model

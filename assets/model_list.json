@@ -1,29 +1,43 @@
 [
   {
-    "gpt-4o": {
+    "gpt-4.1": {
       "provider": "openai",
       "backend": "litellm",
       "resolve_as": "gpt-4o-2024-11-20",
       "context_window": 128000,
       "max_output_tokens": 16384,
-      "dollars_input": 2.5,
-      "dollars_output": 10.0,
+      "dollars_input": 2.0,
+      "dollars_output": 8.0,
       "tpm": 30000,
       "rpm": 500,
-      "known_as": ["chatgpt-4o-latest"]
+      "known_as": []
     }
   },
   {
-    "gemini-2.0-flash": {
+    "gemini-2.5-flash": {
       "provider": "google",
       "backend": "litellm",
-      "resolve_as": "gemini/gemini-2.0-flash",
+      "resolve_as": "gemini/gemini-2.5-flash-preview-05-20",
       "context_window": 1000000,
-      "max_output_tokens": 32000,
-      "dollars_input": 0.1,
-      "dollars_output": 0.4,
-      "tpm": 4000000,
-      "rpm": 2000,
+      "max_output_tokens": 64000,
+      "dollars_input": 0.15,
+      "dollars_output": 0.6,
+      "tpm": 1000000,
+      "rpm": 1000,
+      "known_as": []
+    }
+  },
+  {
+    "gemini-2.5-pro": {
+      "provider": "google",
+      "backend": "litellm",
+      "resolve_as": "gemini/gemini-2.5-pro-preview-05-06",
+      "context_window": 1000000,
+      "max_output_tokens": 64000,
+      "dollars_input": 1.25,
+      "dollars_output": 10.0,
+      "tpm": 2000000,
+      "rpm": 10,
       "known_as": []
     }
   },
@@ -42,32 +56,31 @@
     }
   },
   {
-    "claude-3.7-sonnet": {
+    "claude-sonnet-4": {
       "provider": "anthropic",
       "backend": "litellm",
-      "resolve_as": "anthropic/claude-3-7-sonnet-20250219",
+      "resolve_as": "anthropic/claude-sonnet-4-20250514",
       "context_window": 200000,
       "max_output_tokens": 8192,
       "dollars_input": 3,
       "dollars_output": 15,
-      "tpm": 40000,
+      "tpm": 20000,
       "rpm": 50,
       "known_as": []
     }
   },
   {
-    "claude-3.5-sonnet": {
+    "claude-opus-4": {
       "provider": "anthropic",
       "backend": "litellm",
-      "resolve_as": "anthropic/claude-3-5-sonnet-20241022",
+      "resolve_as": "anthropic/claude-opus-4-20250514",
       "context_window": 200000,
       "max_output_tokens": 8192,
-      "dollars_input": 3,
-      "dollars_output": 15,
-      "tpm": 40000,
+      "dollars_input": 15,
+      "dollars_output": 75,
+      "tpm": 20000,
       "rpm": 50,
-      "known_as": [],
-      "hidden": true
+      "known_as": []
     }
   }
 ]

@@ -6,10 +6,9 @@ import signal
 import uvloop
 import uvicorn
 
-from core.args import parse_args
-from core.logger import init_logger, info, error, warn
+from core.logger import init_logger, info, warn
 from core.models import get_assets_models
-from core.globals import BASE_DIR, SECRET_KEY
+from core.globals import BASE_DIR
 from core.app import App
 from core.repositories.stats_repository import StatsRepository
 from core.repositories.users_repository import UsersRepository
@@ -56,18 +55,11 @@ def setup_signal_handlers(server: Server):
 
 
 def main():
-    if not SECRET_KEY:
-        error("LLM_PROXY_SECRET is not set")
-        return 1
-
-    args = parse_args()
-    init_logger(args.DEBUG)
+    init_logger(True)
     info("Logger initialized")
 
     a_models = get_assets_models(BASE_DIR)
-    if not a_models.model_list:
-        error("No models available. Exiting...")
-        return 1
+    assert a_models.model_list, "No models available"
 
     db_dir = BASE_DIR / "db"
     db_dir.mkdir(parents=True, exist_ok=True)
@@ -90,8 +82,8 @@ def main():
 
     server = Server(
         app=app,
-        host=args.host,
-        port=args.port,
+        host="0.0.0.0",
+        port=7012,
         stats_stop=stats_stop,
         stats_thread=stats_thread
     )

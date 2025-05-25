@@ -24,10 +24,7 @@ class ModelsRouter(AuthRouter):
                 "created": int(time.time()),
                 "owned_by": "system"
             }
-            for m_name in [
-                *self._a_models.model_defaults.keys(),
-                *[i.name for i in self._a_models.model_list if not i.hidden]
-            ]
+            for m_name in [i.name for i in self._a_models.model_list if not i.hidden]
         ]
 
         self.add_api_route("/v1/models", self._models, methods=["GET"])

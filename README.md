@@ -17,67 +17,12 @@ A FastAPI-based proxy server for Large Language Models (LLMs) that provides a un
 ```bash
 git clone https://github.com/valaises/llm-proxy.git
 ```
-2. Specify variables in .env file
-```bash
-cp .env.example .env
-```
-```bash
-vim .env
-```
 
-#### Using Docker
-```bash
-docker build -t llm_proxy . && \
-docker run -d \
-  --name llm_proxy \
-  --env-file .env \
-  -p 7012:7012 \
-  -v $(pwd)/db:/app/db \
-  --restart unless-stopped \
-  llm_proxy
-```
-
-or, alternatively, you can use docker compose
+use docker compose
 #### Using Docker Compose
 ```bash
 docker compose up -d
 ```
-
-## Installation, local
-1. Install uv
-
-[about: uv - modern pip, pipx, poetry, venv replacement](https://docs.astral.sh/uv/getting-started/installation/)
-```bash
-wget -qO- https://astral.sh/uv/install.sh | sh
-```
-
-2. Clone the repository
-```bash
-git clone https://github.com/valaises/llm-proxy.git
-```
-
-3. Install llm-proxy
-```bash
-uv sync && sudo uv pip install -e
-```
-4. Specify env variables:
-```
-# obrigatory
-LLM_PROXY_SECRET= 
-# at least one LLM providers' api key
-# OPENAI_API_KEY =
-# GEMINI_API_KEY =
-```
-5. Start the server
-```bash
-python -m src.core.main
-```
-
-### Command Line Arguments
-
-- `--host`: Specify the host address (default: 127.0.0.1)
-- `--port`: Specify the port number (default: 8000)
-- `--debug`: Enable debug logging (optional)
 
 ## Usage
 
