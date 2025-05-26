@@ -1,14 +1,12 @@
 import json
 import os
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Literal
 from dataclasses import dataclass
-from pathlib import Path
+from pydantic import BaseModel, Field
 
+from core.globals import MODELS_FILE, MODELS_PROVIDERS_FILE
 from core.logger import warn
-
-
-__all__ = ["AssetsModels", "ModelInfo", "get_assets_models", "resolve_model_record"]
 
 
 @dataclass
@@ -17,56 +15,39 @@ class ModelProviderInfo:
     env: Optional[str]
 
 
-@dataclass
-class ModelInfo:
+class ModelInfo(BaseModel):
     name: str
-    provider: str
-    backend: str
+    provider: Literal["openai", "google", "togetherai", "anthropic"]
+    backend: Literal["litellm"]
     resolve_as: str
     context_window: int
+    effective_context_window: Optional[int] = None
+    tokenizer: Literal["str"] = "simplified"
     max_output_tokens: int
     dollars_input: int
     dollars_output: int
-    tokens_per_minute: Optional[int]
-    request_per_minute: Optional[int]
-    known_as: List[str]
-    hidden: bool
+    tokens_per_minute: Optional[int] = None
+    request_per_minute: Optional[int] = None
+    known_as: List[str] = Field(default_factory=list)
+    hidden: bool = False
 
 
-@dataclass
-class AssetsModels:
-    model_list: List[ModelInfo]
+def models_info() -> List[ModelInfo]:
+    models_json = json.loads(MODELS_FILE.read_text())
 
-def _models_info(base_dir: Path) -> List[ModelInfo]:
-    models_file = base_dir.joinpath("assets").joinpath("model_list.json")
-    assert models_file.is_file(), f"model_list.json not found at {models_file}"
+    models = []
+    for model_data in models_json:
+        for model_name, model_info in model_data.items():
+            # Add the name to the model info dict
+            model_info["name"] = model_name
+            # Create a ModelInfo instance using Pydantic
+            models.append(ModelInfo.model_validate(model_info))
 
-    models_json = json.loads(models_file.read_text())
+    return models
 
-    return [
-        ModelInfo(
-            name=model_name,
-            provider=model_info["provider"],
-            backend=model_info["backend"],
-            resolve_as=model_info["resolve_as"],
-            context_window=model_info["context_window"],
-            max_output_tokens=model_info["max_output_tokens"],
-            dollars_input=model_info["dollars_input"],
-            dollars_output=model_info["dollars_output"],
-            tokens_per_minute=model_info.get("tpm"),
-            request_per_minute=model_info.get("rpm"),
-            known_as=model_info["known_as"],
-            hidden=model_info.get("hidden", False),
-        )
-        for model_data in models_json
-        for model_name, model_info in model_data.items()
-    ]
 
-def get_model_providers(base_dir: Path) -> List[ModelProviderInfo]:
-    providers_file = base_dir.joinpath("assets").joinpath("model_providers.json")
-    assert providers_file.is_file(), f"model_providers.json not found at {providers_file}"
-
-    providers_json = json.loads(providers_file.read_text())
+def get_model_providers() -> List[ModelProviderInfo]:
+    providers_json = json.loads(MODELS_PROVIDERS_FILE.read_text())
 
     return [
         ModelProviderInfo(
@@ -77,9 +58,10 @@ def get_model_providers(base_dir: Path) -> List[ModelProviderInfo]:
         for provider_name, provider_info in provider_data.items()
     ]
 
-def get_model_list(base_dir: Path) -> List[ModelInfo]:
-    all_models = _models_info(base_dir)
-    providers = get_model_providers(base_dir)
+
+def get_model_list() -> List[ModelInfo]:
+    all_models = models_info()
+    providers = get_model_providers()
 
     filtered_models = []
     for m in all_models:
@@ -96,25 +78,10 @@ def get_model_list(base_dir: Path) -> List[ModelInfo]:
     return filtered_models
 
 
-def get_assets_models(base_dir: Path) -> AssetsModels:
-    model_list = get_model_list(base_dir)
-    return AssetsModels(
-        model_list=model_list
-    )
-
-
-def get_model_defaults(base_dir: Path) -> Dict[str, str]:
-    defaults_file = base_dir.joinpath("assets").joinpath("model_defaults.json")
-    assert defaults_file.is_file(), f"model_defaults.json not found at {defaults_file}"
-
-    defaults_json = json.loads(defaults_file.read_text())
-    return defaults_json
-
-
-def resolve_model_record(model_name: str, a_models: AssetsModels) -> Optional[ModelInfo]:
-    if not model_name:
-        return
-
-    for model in a_models.model_list:
+def resolve_model_record(
+        model_name: str,
+        model_list: List[ModelInfo],
+) -> Optional[ModelInfo]:
+    for model in model_list:
         if model.name == model_name or model_name in model.known_as:
             return model

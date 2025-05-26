@@ -1,65 +1,21 @@
 import asyncio
-import threading
+
 from queue import Queue
-import signal
 
 import uvloop
-import uvicorn
 
-from core.logger import init_logger, info, warn
-from core.models import get_assets_models
+from core.logger import init_logger, info
 from core.globals import BASE_DIR
 from core.app import App
 from core.repositories.stats_repository import StatsRepository
 from core.repositories.users_repository import UsersRepository
-from core.stats import spawn_stats_worker
-
-
-class Server(uvicorn.Server):
-    """Custom uvicorn Server with graceful shutdown"""
-
-    def __init__(self, app, host: str, port: int, stats_stop: threading.Event, stats_thread: threading.Thread):
-        self.stats_stop = stats_stop
-        self.stats_thread = stats_thread
-        config = uvicorn.Config(
-            app,
-            host=host,
-            port=port,
-            timeout_keep_alive=600,
-            log_config=None
-        )
-        super().__init__(config)
-
-    async def shutdown(self, sockets=None):
-        """Graceful shutdown with stats worker cleanup"""
-
-        # Stop stats worker
-        if self.stats_stop and self.stats_thread:
-            self.stats_stop.set()
-            self.stats_thread.join(timeout=30)
-            if self.stats_thread.is_alive():
-                warn("Stats worker didn't finish in time - some stats might be lost")
-
-        # Shutdown uvicorn
-        await super().shutdown(sockets=sockets)
-
-
-def setup_signal_handlers(server: Server):
-    """Setup handlers for signals"""
-    def handle_exit(signum, frame):
-        info(f"Received exit signal {signal.Signals(signum).name}")
-        asyncio.create_task(server.shutdown())
-
-    signal.signal(signal.SIGINT, handle_exit)
-    signal.signal(signal.SIGTERM, handle_exit)
+from core.server import Server
+from core.workers.w_stats import spawn_worker as spawn_stats_worker
 
 
 def main():
     init_logger(True)
     info("Logger initialized")
-
-    a_models = get_assets_models(BASE_DIR)
-    assert a_models.model_list, "No models available"
 
     db_dir = BASE_DIR / "db"
     db_dir.mkdir(parents=True, exist_ok=True)
@@ -68,10 +24,9 @@ def main():
     stats_repository = StatsRepository(db_dir / "stats.db")
 
     stats_queue = Queue()
-    stats_stop, stats_thread = spawn_stats_worker(stats_queue, stats_repository)
+    stats_worker = spawn_stats_worker(stats_queue, stats_repository)
 
     app = App(
-        a_models,
         stats_queue,
         users_repository,
         docs_url=None,
@@ -84,11 +39,10 @@ def main():
         app=app,
         host="0.0.0.0",
         port=7012,
-        stats_stop=stats_stop,
-        stats_thread=stats_thread
+        workers=[
+            stats_worker,
+        ]
     )
-
-    setup_signal_handlers(server)
 
     server.run()
     return 0

@@ -5,12 +5,12 @@
       "backend": "litellm",
       "resolve_as": "gpt-4o-2024-11-20",
       "context_window": 128000,
+      "effective_context_window": 64000,
       "max_output_tokens": 16384,
       "dollars_input": 2.0,
       "dollars_output": 8.0,
       "tpm": 30000,
-      "rpm": 500,
-      "known_as": []
+      "rpm": 500
     }
   },
   {
@@ -19,12 +19,12 @@
       "backend": "litellm",
       "resolve_as": "gemini/gemini-2.5-flash-preview-05-20",
       "context_window": 1000000,
+      "effective_context_window": 200000,
       "max_output_tokens": 64000,
       "dollars_input": 0.15,
       "dollars_output": 0.6,
       "tpm": 1000000,
-      "rpm": 1000,
-      "known_as": []
+      "rpm": 1000
     }
   },
   {
@@ -33,12 +33,12 @@
       "backend": "litellm",
       "resolve_as": "gemini/gemini-2.5-pro-preview-05-06",
       "context_window": 1000000,
+      "effective_context_window": 200000,
       "max_output_tokens": 64000,
       "dollars_input": 1.25,
       "dollars_output": 10.0,
       "tpm": 2000000,
-      "rpm": 10,
-      "known_as": []
+      "rpm": 10
     }
   },
   {
@@ -50,9 +50,8 @@
       "max_output_tokens": 32000,
       "dollars_input": 3,
       "dollars_output": 7,
-      "tpm": -1,
       "rpm": 600,
-      "known_as": []
+      "disabled": true
     }
   },
   {
@@ -61,12 +60,12 @@
       "backend": "litellm",
       "resolve_as": "anthropic/claude-sonnet-4-20250514",
       "context_window": 200000,
-      "max_output_tokens": 8192,
+      "effective_context_window": 64000,
+      "max_output_tokens": 32000,
       "dollars_input": 3,
       "dollars_output": 15,
       "tpm": 20000,
-      "rpm": 50,
-      "known_as": []
+      "rpm": 50
     }
   },
   {
@@ -75,12 +74,12 @@
       "backend": "litellm",
       "resolve_as": "anthropic/claude-opus-4-20250514",
       "context_window": 200000,
-      "max_output_tokens": 8192,
+      "effective_context_window": 64000,
+      "max_output_tokens": 32000,
       "dollars_input": 15,
       "dollars_output": 75,
       "tpm": 20000,
-      "rpm": 50,
-      "known_as": []
+      "rpm": 50
     }
   }
 ]

@@ -1,6 +1,6 @@
 [project]
 name = "llm-proxy"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,14 +15,14 @@ dependencies = [
     "prompt-toolkit>=3.0.50",
     "tabulate>=0.9.0",
     "openai>=1.63.2",
-    "chat-tools",
 ]
 
 [tool.uv.workspace]
 members = [
-    "src/core"
+    "src/core",
+    "src/openai_wrappers"
 ]
 
 [tool.uv.sources]
 core = { workspace = true }
-chat-tools = { git = "https://github.com/valaises/chat_tools.git" }
+openai_wrappers = { workspace = true }

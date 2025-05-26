@@ -9,11 +9,13 @@ import litellm
 from fastapi import Header, HTTPException
 from fastapi.responses import StreamingResponse
 
-from core.logger import warn, info, error
-from core.models import AssetsModels, ModelInfo, resolve_model_record
+from core.chat_utils import limit_messages, remove_trail_tool_calls, answer_unanswered_tool_calls_with_error
+from core.logger import info, error
+from core.models import ModelInfo, resolve_model_record
 from core.repositories.stats_repository import UsageStatRecord
 from core.routers.router_auth import AuthRouter
-from chat_tools.chat_models import ChatPost, ChatMessage
+from core.tokenizers import Tokenizer
+from openai_wrappers.types import ChatMessage, ChatPost
 
 
 def increment_stats_record(rec: UsageStatRecord, model_record: ModelInfo, usage: Dict):
@@ -30,7 +32,6 @@ def increment_stats_record(rec: UsageStatRecord, model_record: ModelInfo, usage:
 
 
 async def litellm_completion_stream(
-        model_name: str,
         messages: List[ChatMessage],
         model_record: ModelInfo,
         post: ChatPost,
@@ -41,7 +42,7 @@ async def litellm_completion_stream(
     finish_reason = None
     try:
         stream = await litellm.acompletion(
-            model=model_name, messages=messages, stream=True,
+            model=model_record.resolve_as, messages=messages, stream=True,
             temperature=post.temperature, top_p=post.top_p,
             max_tokens=post.max_tokens,
             tools=post.tools,
@@ -78,7 +79,6 @@ async def litellm_completion_stream(
 
 
 async def litellm_completion_not_stream(
-        model_name: str,
         messages: List[ChatMessage],
         model_record: ModelInfo,
         post: ChatPost,
@@ -87,7 +87,7 @@ async def litellm_completion_not_stream(
 ):
     try:
         response = await litellm.acompletion(
-            model=model_name, messages=messages, stream=False,
+            model=model_record.resolve_as, messages=messages, stream=False,
             temperature=post.temperature, top_p=post.top_p,
             max_tokens=post.max_tokens,
             tools=post.tools,
@@ -112,12 +112,15 @@ async def litellm_completion_not_stream(
 class ChatCompletionsRouter(AuthRouter):
     def __init__(
             self,
-            a_models: AssetsModels,
+            model_list: List[ModelInfo],
+            tokenizers: Dict[str, Tokenizer],
             stats_q: Queue,
             *args, **kwargs
     ):
-        self._a_models = a_models
+        self._model_list = model_list
+        self._tokenizers = tokenizers
         self._stats_q = stats_q
+
         super().__init__(*args, **kwargs)
 
         self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
@@ -128,13 +131,22 @@ class ChatCompletionsRouter(AuthRouter):
         if not user:
             return self._auth_error_response()
 
-        model_record: Optional[ModelInfo] = resolve_model_record(post.model, self._a_models)
+        model_record: Optional[ModelInfo] = resolve_model_record(post.model, self._model_list)
         if not model_record:
             raise HTTPException(status_code=404, detail=f"Model {post.model} not found")
 
-        if model_record.resolve_as not in litellm.model_list:
-            warn(f"model {model_record.name} not in litellm.model_list")
-        info(f"model resolve {post.model} -> {model_record.resolve_as}")
+        tokenizer = self._tokenizers.get(model_record.tokenizer)
+        if not tokenizer:
+            raise HTTPException(status_code=404, detail=f"Tokenizer {model_record.tokenizer} not found")
+
+        messages = post.messages
+
+        tool_res_messages = answer_unanswered_tool_calls_with_error(messages)
+        messages.extend(tool_res_messages)
+
+        messages = limit_messages(messages, tokenizer, model_record)
+
+        remove_trail_tool_calls(messages)
 
         stats_record = UsageStatRecord(
             user_id=user["user_id"],
@@ -144,7 +156,7 @@ class ChatCompletionsRouter(AuthRouter):
             tokens_out=0,
             dollars_in=0,
             dollars_out=0,
-            messages_cnt=len(post.messages),
+            messages_cnt=len(messages),
         )
 
         max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
@@ -154,15 +166,13 @@ class ChatCompletionsRouter(AuthRouter):
 
         if model_record.backend == "litellm":
             response_streamer = litellm_completion_stream(
-                model_record.resolve_as,
-                post.messages,
+                messages,
                 model_record,
                 post,
                 stats_record,
                 self._stats_q,
             ) if post.stream else litellm_completion_not_stream(
-                model_record.resolve_as,
-                post.messages,
+                messages,
                 model_record,
                 post,
                 stats_record,

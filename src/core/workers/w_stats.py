@@ -2,10 +2,11 @@ import threading
 
 from asyncio import Queue
 from queue import Empty
-from typing import Iterable, Tuple
+from typing import Iterable
 
 from core.logger import info, warn
 from core.repositories.stats_repository import StatsRepository, UsageStatRecord
+from core.workers.w_abstract import Worker
 
 
 def drain_queue(q: Queue) -> Iterable[UsageStatRecord]:
@@ -18,7 +19,7 @@ def drain_queue(q: Queue) -> Iterable[UsageStatRecord]:
         pass
 
 
-def stats_worker(
+def worker(
         queue: Queue,
         stop_event: threading.Event,
         stats_repository: StatsRepository
@@ -53,7 +54,7 @@ def stats_worker(
                         queue.put(record)
 
             # Wait for more records or stop event
-            stop_event.wait(30)
+            stop_event.wait(1)
 
         try:
             info(f"Processing stats records before shutdown...")
@@ -67,10 +68,10 @@ def stats_worker(
         loop.close()
 
 
-def spawn_stats_worker(
+def spawn_worker(
         queue: Queue,
         stats_repository: StatsRepository
-) -> Tuple[threading.Event, threading.Thread]:
+) -> Worker:
     """
     Spawn a stats worker thread
 
@@ -79,10 +80,10 @@ def spawn_stats_worker(
     """
     stop_event = threading.Event()
     worker_thread = threading.Thread(
-        target=stats_worker,
+        target=worker,
         args=(queue, stop_event, stats_repository),
         daemon=True
     )
     worker_thread.start()
 
-    return stop_event, worker_thread
+    return Worker("worker_stats", worker_thread, stop_event)

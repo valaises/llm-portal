@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 members = [
     "core",
     "llm-proxy",
+    "openai-wrappers",
 ]
 
 [[package]]
@@ -151,14 +152,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/cd/e5/131d2fb1b0dddafc37be4f3a2fa79aa4c037368be9423061dccadfd90091/charset_normalizer-3.4.1-cp313-cp313-win32.whl", hash = "sha256:eb8178fe3dba6450a3e024e95ac49ed3400e506fd4e9e5c32d30adda88cbd407", size = 95391 },
     { url = "https://files.pythonhosted.org/packages/27/f2/4f9a69cc7712b9b5ad8fdb87039fd89abba997ad5cbe690d1835d40405b0/charset_normalizer-3.4.1-cp313-cp313-win_amd64.whl", hash = "sha256:b1ac5992a838106edb89654e0aebfc24f5848ae2547d22c2c3f66454daa11971", size = 102702 },
     { url = "https://files.pythonhosted.org/packages/0e/f6/65ecc6878a89bb1c23a086ea335ad4bf21a588990c3f535a227b9eea9108/charset_normalizer-3.4.1-py3-none-any.whl", hash = "sha256:d98b1668f06378c6dbefec3b92299716b931cd4e6061f3c875a71ced1780ab85", size = 49767 },
-]
-
-[[package]]
-name = "chat-tools"
-version = "0.1.0"
-source = { git = "https://github.com/valaises/chat_tools.git#ce56cd686db84dec14bd61cacbb9dd0b2ff8646f" }
-dependencies = [
-    { name = "pydantic" },
 ]
 
 [[package]]
@@ -466,7 +459,6 @@ name = "llm-proxy"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "chat-tools" },
     { name = "fastapi" },
     { name = "litellm" },
     { name = "more-itertools" },
@@ -481,7 +473,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chat-tools", git = "https://github.com/valaises/chat_tools.git" },
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "litellm", specifier = ">=1.61.9" },
     { name = "more-itertools", specifier = ">=10.6.0" },
@@ -598,6 +589,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/e6/1c/11b520deb71f9ea54
 wheels = [
     { url = "https://files.pythonhosted.org/packages/15/64/db3462b358072387b8e93e6e6a38d3c741a17b4a84171ef01d6c85c63f25/openai-1.63.2-py3-none-any.whl", hash = "sha256:1f38b27b5a40814c2b7d8759ec78110df58c4a614c25f182809ca52b080ff4d4", size = 472282 },
 ]
+
+[[package]]
+name = "openai-wrappers"
+version = "0.1.0"
+source = { virtual = "src/openai_wrappers" }
 
 [[package]]
 name = "packaging"

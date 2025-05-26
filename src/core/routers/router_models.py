@@ -1,20 +1,21 @@
 import json
 import time
+from typing import List
 
 from fastapi import Header
 from fastapi.responses import Response
 
-from core.models import AssetsModels
+from core.models import ModelInfo
 from core.routers.router_auth import AuthRouter
 
 
 class ModelsRouter(AuthRouter):
     def __init__(
             self,
-            a_models: AssetsModels,
+            model_list: List[ModelInfo],
             *args, **kwargs
     ):
-        self._a_models = a_models
+        self._model_list = model_list
         super().__init__(*args, **kwargs)
 
         self._all_models = [
@@ -24,7 +25,7 @@ class ModelsRouter(AuthRouter):
                 "created": int(time.time()),
                 "owned_by": "system"
             }
-            for m_name in [i.name for i in self._a_models.model_list if not i.hidden]
+            for m_name in [i.name for i in self._model_list if not i.hidden]
         ]
 
         self.add_api_route("/v1/models", self._models, methods=["GET"])
