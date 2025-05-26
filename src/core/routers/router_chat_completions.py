@@ -24,24 +24,6 @@ litellm.verbose=False
 litellm.set_verbose = False
 
 
-def log_execution_time(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
-    @functools.wraps(func)
-    async def wrapper(*args, **kwargs):
-        start_time = time.time()
-        try:
-            return await func(*args, **kwargs)
-        finally:
-            end_time = time.time()
-            execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
-            # Get the model name and stream status from kwargs if available
-            post = kwargs.get('post', {})
-            model_name = post.model if hasattr(post, 'model') else "unknown"
-            is_stream = post.stream if hasattr(post, 'stream') else False
-            stream_info = "streaming" if is_stream else "non-streaming"
-            info(f"chat/completions for model {model_name} ({stream_info}) took {execution_time:.0f} ms")
-    return wrapper
-
-
 def increment_stats_record(rec: UsageStatRecord, model_record: ModelInfo, usage: Dict):
     try:
         rec.tokens_in += usage["prompt_tokens"]
@@ -149,7 +131,6 @@ class ChatCompletionsRouter(AuthRouter):
 
         self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
 
-    @log_execution_time
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
         user = await self._check_auth(authorization)
         if not user:
@@ -184,7 +165,6 @@ class ChatCompletionsRouter(AuthRouter):
             dollars_out=0,
             messages_cnt=len(messages),
         )
-        time.sleep(1)
 
         max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
         if post.max_tokens != max_tokens:
