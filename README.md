@@ -68,7 +68,7 @@ curl http://localhost:7012/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $LLM_PROXY_API_KEY" \
   -d '{
-    "model": "gpt-4o",
+    "model": "gpt-4.1",
     "messages": [
       {
         "role": "developer",

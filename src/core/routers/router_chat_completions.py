@@ -18,6 +18,10 @@ from core.tokenizers import Tokenizer
 from openai_wrappers.types import ChatMessage, ChatPost
 
 
+litellm.verbose=False
+litellm.set_verbose = False
+
+
 def increment_stats_record(rec: UsageStatRecord, model_record: ModelInfo, usage: Dict):
     try:
         rec.tokens_in += usage["prompt_tokens"]
@@ -138,6 +142,8 @@ class ChatCompletionsRouter(AuthRouter):
         tokenizer = self._tokenizers.get(model_record.tokenizer)
         if not tokenizer:
             raise HTTPException(status_code=404, detail=f"Tokenizer {model_record.tokenizer} not found")
+
+        info(f"RESOLVE {model_record.name} -> {model_record.resolve_as}")
 
         messages = post.messages
 

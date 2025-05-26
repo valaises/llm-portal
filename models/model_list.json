@@ -3,7 +3,7 @@
     "gpt-4.1": {
       "provider": "openai",
       "backend": "litellm",
-      "resolve_as": "gpt-4o-2024-11-20",
+      "resolve_as": "gpt-4.1-2025-04-14",
       "context_window": 128000,
       "effective_context_window": 64000,
       "max_output_tokens": 16384,
