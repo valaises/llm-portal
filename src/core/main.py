@@ -14,7 +14,7 @@ from core.workers.w_stats import spawn_worker as spawn_stats_worker
 
 
 def main():
-    init_logger(True)
+    init_logger(False)
     info("Logger initialized")
 
     db_dir = BASE_DIR / "db"
