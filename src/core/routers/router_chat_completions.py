@@ -32,13 +32,13 @@ def log_execution_time(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awa
             return await func(*args, **kwargs)
         finally:
             end_time = time.time()
-            execution_time = end_time - start_time
+            execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
             # Get the model name and stream status from kwargs if available
             post = kwargs.get('post', {})
             model_name = post.model if hasattr(post, 'model') else "unknown"
             is_stream = post.stream if hasattr(post, 'stream') else False
             stream_info = "streaming" if is_stream else "non-streaming"
-            info(f"chat/completions for model {model_name} ({stream_info}) took {execution_time:.3f} seconds")
+            info(f"chat/completions for model {model_name} ({stream_info}) took {execution_time:.0f} ms")
     return wrapper
 
 
@@ -184,6 +184,7 @@ class ChatCompletionsRouter(AuthRouter):
             dollars_out=0,
             messages_cnt=len(messages),
         )
+        time.sleep(1)
 
         max_tokens = min(model_record.max_output_tokens, post.max_tokens) if post.max_tokens else post.max_tokens
         if post.max_tokens != max_tokens:
