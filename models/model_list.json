@@ -7,8 +7,8 @@
       "context_window": 128000,
       "effective_context_window": 64000,
       "max_output_tokens": 16384,
-      "dollars_input": 2.0,
-      "dollars_output": 8.0,
+      "dollars_input": 2,
+      "dollars_output": 8,
       "tpm": 30000,
       "rpm": 500
     }
@@ -36,7 +36,7 @@
       "effective_context_window": 200000,
       "max_output_tokens": 64000,
       "dollars_input": 1.25,
-      "dollars_output": 10.0,
+      "dollars_output": 10,
       "tpm": 2000000,
       "rpm": 10
     }

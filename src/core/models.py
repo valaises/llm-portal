@@ -24,8 +24,8 @@ class ModelInfo(BaseModel):
     effective_context_window: Optional[int] = None
     tokenizer: Literal["str"] = "simplified"
     max_output_tokens: int
-    dollars_input: int
-    dollars_output: int
+    dollars_input: float
+    dollars_output: float
     tokens_per_minute: Optional[int] = None
     request_per_minute: Optional[int] = None
     known_as: List[str] = Field(default_factory=list)
