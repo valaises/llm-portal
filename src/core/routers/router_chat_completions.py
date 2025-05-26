@@ -130,7 +130,6 @@ class ChatCompletionsRouter(AuthRouter):
         self.add_api_route(f"/v1/chat/completions", self._chat_completions, methods=["POST"])
 
     async def _chat_completions(self, post: ChatPost, authorization: str = Header(None)):
-        info(post.tools)
         user = await self._check_auth(authorization)
         if not user:
             return self._auth_error_response()
