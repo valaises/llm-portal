@@ -82,7 +82,7 @@ def get_model_list() -> List[ModelInfo]:
             else:
                 info(f"model {m.name}: provider {m.provider} env {p.env} not set. SKIPPING")
                 continue
-
+        info(f"+model {m.name}; resolve_as: {m.resolve_as}")
         filtered_models.append(m)
 
     return filtered_models
