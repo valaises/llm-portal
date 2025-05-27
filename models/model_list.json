@@ -34,7 +34,7 @@
       "provider": "google",
       "restream_provider": "openrouter",
       "backend": "litellm",
-      "resolve_as": "google/gemini-2.5-pro-preview-05-06",
+      "resolve_as": "google/gemini-2.5-pro-preview",
       "context_window": 1000000,
       "effective_context_window": 200000,
       "max_output_tokens": 64000,
@@ -84,7 +84,8 @@
       "dollars_input": 15,
       "dollars_output": 75,
       "tpm": 20000,
-      "rpm": 50
+      "rpm": 50,
+      "hidden": true
     }
   }
 ]
