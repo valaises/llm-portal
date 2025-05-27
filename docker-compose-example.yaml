@@ -5,10 +5,14 @@ services:
     container_name: "llm_proxy"
     environment:
       - LLM_PROXY_SECRET="secret"
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - TOGETHERAI_API_KEY=${TOGETHERAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - TOGETHERAI_API_KEY=${TOGETHERAI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@default.com}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-admin1234}
     ports:
       - "7012:7012"
     volumes:

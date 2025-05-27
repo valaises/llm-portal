@@ -8,6 +8,9 @@ from contextlib import contextmanager
 
 from pydantic import BaseModel, EmailStr
 
+from core.globals import ADMIN_EMAIL, ADMIN_API_KEY
+from core.logger import info
+
 
 class UserCreatePost(BaseModel):
     email: EmailStr
@@ -101,7 +104,7 @@ class UsersRepository:
                 for row in cursor.fetchall()
             ]
 
-    def _create_user_sync(self, post: UserCreatePost) -> Optional[Dict]:
+    def create_user_sync(self, post: UserCreatePost) -> Optional[Dict]:
         with self._get_db_connection() as conn:
             try:
                 cursor = conn.execute(
@@ -175,7 +178,7 @@ class UsersRepository:
                 for row in cursor.fetchall()
             ]
 
-    def _create_key_sync(self, post: ApiKeyCreatePost) -> bool:
+    def create_key_sync(self, post: ApiKeyCreatePost) -> bool:
         with self._get_db_connection() as conn:
             try:
                 # First check if user exists
@@ -216,11 +219,37 @@ class UsersRepository:
             conn.commit()
             return cursor.rowcount > 0
 
+    def create_admin_record_if_needed(self):
+        if ADMIN_EMAIL is not None and ADMIN_API_KEY is not None:
+            post = UserCreatePost(email=ADMIN_EMAIL)
+
+            users_existing = self._list_users_sync()
+            user = next(u for u in users_existing if u["email"] == ADMIN_EMAIL)
+            if not user:
+                user = self.create_user_sync(post)
+                assert user
+                info("Created ADMIN user")
+
+            keys_existing = self._list_keys_sync(
+                post=ApiKeyListPost(
+                    user_id=user["user_id"]
+                )
+            )
+            key = next(k for k in keys_existing if k["api_key"] == ADMIN_API_KEY)
+            if not key:
+                post = ApiKeyCreatePost(
+                    api_key=ADMIN_API_KEY,
+                    scope="*",
+                    user_id=user["user_id"]
+                )
+                assert self.create_key_sync(post)
+                info("Created ADMIN API KEY")
+
     async def list_users(self) -> List[Dict]:
         return await self._run_in_thread(self._list_users_sync)
 
     async def create_user(self, post: UserCreatePost) -> Optional[Dict]:
-        return await self._run_in_thread(self._create_user_sync, post)
+        return await self._run_in_thread(self.create_user_sync, post)
 
     async def update_user(self, post: UserUpdatePost) -> Optional[Dict]:
         return await self._run_in_thread(self._update_user_sync, post)
@@ -232,7 +261,7 @@ class UsersRepository:
         return await self._run_in_thread(self._list_keys_sync, post)
 
     async def create_key(self, post: ApiKeyCreatePost) -> bool:
-        return await self._run_in_thread(self._create_key_sync, post)
+        return await self._run_in_thread(self.create_key_sync, post)
 
     async def delete_key(self, post: ApiKeyDeletePost) -> bool:
         return await self._run_in_thread(self._delete_key_sync, post)

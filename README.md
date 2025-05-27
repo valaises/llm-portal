@@ -24,9 +24,29 @@ use docker compose
 docker compose up -d
 ```
 
-## Usage
+## Make a Chat Request
+```bash
+curl http://localhost:7012/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $LLM_PROXY_API_KEY" \
+  -d '{
+    "model": "gpt-4.1",
+    "messages": [
+      {
+        "role": "developer",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Hello!"
+      }
+    ],
+    "stream": false
+  }'
+```
 
-### Create a User and get an API KEY
+
+## Create a User and API KEY
 
 #### Using CLI Admin
 
@@ -59,27 +79,6 @@ curl -X POST http://localhost:7012/v1/keys-create \
   -d '{
     "user_id": 1,
     "scope": ""
-  }'
-```
-
-### Make a Chat Request
-```bash
-curl http://localhost:7012/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $LLM_PROXY_API_KEY" \
-  -d '{
-    "model": "gpt-4.1",
-    "messages": [
-      {
-        "role": "developer",
-        "content": "You are a helpful assistant."
-      },
-      {
-        "role": "user",
-        "content": "Hello!"
-      }
-    ],
-    "stream": false
   }'
 ```
 

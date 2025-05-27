@@ -38,8 +38,6 @@ class App(FastAPI):
         self._setup_middlewares()
         self.add_event_handler("startup", self._startup_events)
 
-        for router in self._routers():
-            self.include_router(router)
 
     def _setup_middlewares(self):
         self.add_middleware(
@@ -52,7 +50,10 @@ class App(FastAPI):
         self.add_middleware(NoCacheMiddleware) # type: ignore[arg-type]
 
     async def _startup_events(self):
-        pass
+        self._users_repository.create_admin_record_if_needed()
+
+        for router in self._routers():
+            self.include_router(router)
 
     def _routers(self):
         return [

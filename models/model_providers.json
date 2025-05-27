@@ -11,6 +11,9 @@
     },
     "togetherai": {
       "env": "TOGETHERAI_API_KEY"
+    },
+    "openrouter": {
+      "env": "OPENROUTER_API_KEY"
     }
   }
 ]

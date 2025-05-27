@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pydantic import BaseModel, Field
 
 from core.globals import MODELS_FILE, MODELS_PROVIDERS_FILE
-from core.logger import warn
+from core.logger import info, error
 
 
 @dataclass
@@ -18,6 +18,7 @@ class ModelProviderInfo:
 class ModelInfo(BaseModel):
     name: str
     provider: Literal["openai", "google", "togetherai", "anthropic"]
+    restream_provider: Optional[Literal["openrouter"]] = None # is used if provider's env not specified
     backend: Literal["litellm"]
     resolve_as: str
     context_window: int
@@ -63,15 +64,24 @@ def get_model_list() -> List[ModelInfo]:
     all_models = models_info()
     providers = get_model_providers()
 
+    provider_openrouter = next(p for p in providers if p.name == "openrouter")
+
     filtered_models = []
     for m in all_models:
+        if m.hidden:
+            continue
+
         if not (p := next((p for p in providers if p.name == m.provider), None)):
-            warn(f"model {m.name}: provider {m.provider} not found. SKIPPING")
+            error(f"model {m.name}: provider {m.provider} not found. SKIPPING")
             continue
 
         if p.env and not os.environ.get(p.env):
-            warn(f"model {m.name}: provider {m.provider} env {p.env} not set. SKIPPING")
-            continue
+            if m.restream_provider == "openrouter" and provider_openrouter and os.environ.get(provider_openrouter.env):
+                m.resolve_as = f"openrouter/{m.resolve_as}"
+                info(f"MODEL RSTREAM {m.name}: -> {m.resolve_as}")
+            else:
+                info(f"model {m.name}: provider {m.provider} env {p.env} not set. SKIPPING")
+                continue
 
         filtered_models.append(m)
 
