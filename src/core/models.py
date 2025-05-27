@@ -64,7 +64,7 @@ def get_model_list() -> List[ModelInfo]:
     all_models = models_info()
     providers = get_model_providers()
 
-    provider_openrouter = next(p for p in providers if p.name == "openrouter")
+    provider_openrouter = next((p for p in providers if p.name == "openrouter"), None)
 
     filtered_models = []
     for m in all_models:

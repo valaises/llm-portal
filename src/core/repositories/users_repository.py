@@ -224,7 +224,7 @@ class UsersRepository:
             post = UserCreatePost(email=ADMIN_EMAIL)
 
             users_existing = self._list_users_sync()
-            user = next(u for u in users_existing if u["email"] == ADMIN_EMAIL)
+            user = next((u for u in users_existing if u["email"] == ADMIN_EMAIL), None)
             if not user:
                 user = self.create_user_sync(post)
                 assert user
@@ -235,7 +235,7 @@ class UsersRepository:
                     user_id=user["user_id"]
                 )
             )
-            key = next(k for k in keys_existing if k["api_key"] == ADMIN_API_KEY)
+            key = next((k for k in keys_existing if k["api_key"] == ADMIN_API_KEY), None)
             if not key:
                 post = ApiKeyCreatePost(
                     api_key=ADMIN_API_KEY,
