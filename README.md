@@ -1,4 +1,4 @@
-# Valerii's LLM Proxy
+# LLM Portal
 
 A FastAPI-based proxy server for Large Language Models (LLMs) that provides a unified interface for various LLM providers.
 
