@@ -12,25 +12,38 @@ A FastAPI-based proxy server for Large Language Models (LLMs) that provides a un
 - 🖥️ CLI-based admin interface for user management and stats
 
 
-## Installation, containerized
-1. Clone the repository
+## Installation
+
+Download docker-compose.yaml
 ```bash
-git clone https://github.com/valaises/llm-proxy.git
+wget -O docker-compose.yaml https://raw.githubusercontent.com/valaises/llm-portal/refs/heads/main/docker-compose.yaml
 ```
 
-use docker compose
+Start docker compose
 #### Using Docker Compose
 ```bash
 docker compose up -d
 ```
 
-## Make a Chat Request
+## Installation, Development
+
+Clone repository
+```sh
+git clone https://github.com/valaises/llm-portal.git
+```
+
+Start docker compose
+```sh
+docker compose -f docker-compose-dev.yaml up -d
+```
+
+## Example: Make a Chat Request
 ```bash
-curl http://localhost:7012/v1/chat/completions \
+curl https://llmproxy.xi.valerii.cc/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $LLM_PROXY_API_KEY" \
+  -H "Authorization: Bearer admin1234" \
   -d '{
-    "model": "gpt-4.1",
+    "model": "gemini-2.5-pro",
     "messages": [
       {
         "role": "developer",
@@ -45,21 +58,7 @@ curl http://localhost:7012/v1/chat/completions \
   }'
 ```
 
-
-## Create a User and API KEY
-
-#### Using CLI Admin
-
-(Docker): start interactive terminal
-```bash
-docker exec -it llm_proxy bash
-```
-Start admin CLI
-```bash
-python -m src.core.scripts.cli_admin
-```
-
-#### Using requests
+#### Create a User and API KEY Using requests
 1. Create a user
 ```bash
 ```bash
@@ -87,14 +86,9 @@ You can use DB Viewer to access SQLite DB or use a CLI tool
 
 ### CLI Tool Usage
 
-(Docker): start interactive terminal
+Execute command
 ```bash
-docker exec -it llm_proxy bash
-```
-
-Execute CLI tool
-```bash
-python -m src.core.scripts.show_usage_stats
+docker exec -it llm-portal bash -c "python -m src.core.scripts.show_usage_stats"
 ```
 
 | User ID | Requests | Tokens In | Tokens Out | Cost In ($) | Cost Out ($) | Messages | Models Used       |

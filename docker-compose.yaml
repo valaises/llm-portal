@@ -1,8 +1,7 @@
-
 services:
   app:
-    build: .
-    container_name: "llm_proxy"
+    image: oasis4691/llm-portal:latest
+    container_name: "llm-portal"
     environment:
       - LLM_PROXY_SECRET="secret"
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
