@@ -5,12 +5,12 @@ from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from core.models import get_model_list
+from core.models.models import get_model_list
 from core.repositories.users_repository import UsersRepository
 from core.routers.router_chat_completions import ChatCompletionsRouter
 from core.routers.router_models import ModelsRouter
 from core.routers.router_users import UsersRouter
-from core.tokenizers import resolve_tokenizer, Tokenizer
+from core.models.tokenizers import resolve_tokenizer, Tokenizer
 
 
 __all__ = ["App"]

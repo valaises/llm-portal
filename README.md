@@ -12,7 +12,7 @@ A FastAPI-based proxy server for Large Language Models (LLMs) that provides a un
 - 🖥️ CLI-based admin interface for user management and stats
 
 
-## Installation
+## Usage
 
 Download docker-compose.yaml
 ```bash
@@ -25,7 +25,7 @@ Start docker compose
 docker compose up -d
 ```
 
-## Installation, Development
+## Usage, Development
 
 Clone repository
 ```sh

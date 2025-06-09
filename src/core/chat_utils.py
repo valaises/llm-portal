@@ -1,8 +1,8 @@
 from typing import List, Iterator
 
 from core.logger import info
-from core.models import ModelInfo
-from core.tokenizers import Tokenizer
+from core.models.objects import ModelInfo
+from core.models.tokenizers import Tokenizer
 from openai_wrappers.types import ChatMessage, ChatMessageSystem, ToolCall, ChatMessageTool, ChatMessageAssistant
 
 

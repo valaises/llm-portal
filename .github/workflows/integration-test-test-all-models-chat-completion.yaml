@@ -1,0 +1,83 @@
+name: |
+  Integration Test: Test All Models Chat Completion
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-standard-providers:
+    runs-on: ubuntu-latest
+
+    env:
+      LLM_PROXY_SECRET: secret
+      ADMIN_EMAIL: admin@test.com
+      ADMIN_API_KEY: admin1234
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      TOGETHERAI_API_KEY: ${{ secrets.TOGETHERAI_API_KEY }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Start LLM Portal services
+      run: |
+        docker compose -f docker-compose-dev.yaml up -d
+
+    - name: Wait for LLM Portal to be ready
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:7012/v1/models -H "Authorization: Bearer admin1234" > /dev/null 2>&1; do sleep 2; done'
+
+    - name: Run standard providers integration test
+      run: |
+        docker exec llm-portal python tests/integration/test_integration_all_models.py
+
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        docker compose -f docker-compose-dev.yaml logs
+
+    - name: Cleanup containers
+      if: always()
+      run: |
+        docker compose -f docker-compose-dev.yaml down -v
+
+  test-openrouter:
+    runs-on: ubuntu-latest
+
+    env:
+      LLM_PROXY_SECRET: secret
+      ADMIN_EMAIL: admin@test.com
+      ADMIN_API_KEY: admin1234
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Start LLM Portal services
+      run: |
+        docker compose -f docker-compose-dev.yaml up -d
+
+    - name: Wait for LLM Portal to be ready
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:7012/v1/models -H "Authorization: Bearer admin1234" > /dev/null 2>&1; do sleep 2; done'
+
+    - name: Run OpenRouter integration test
+      run: |
+        docker exec llm-portal python tests/integration/test_integration_all_models.py
+
+    - name: Show container logs on failure
+      if: failure()
+      run: |
+        docker compose -f docker-compose-dev.yaml logs
+
+    - name: Cleanup containers
+      if: always()
+      run: |
+        docker compose -f docker-compose-dev.yaml down -v
