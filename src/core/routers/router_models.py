@@ -5,7 +5,7 @@ from typing import List
 from fastapi import Header
 from fastapi.responses import Response
 
-from core.models import ModelInfo
+from core.models.models import ModelInfo
 from core.routers.router_auth import AuthRouter
 
 

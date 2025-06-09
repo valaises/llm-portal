@@ -11,12 +11,12 @@ from fastapi.responses import StreamingResponse
 
 from core.chat_utils import limit_messages, remove_trail_tool_calls, answer_unanswered_tool_calls_with_error
 from core.logger import info, error
-from core.models import ModelInfo, resolve_model_record
+from core.models.models import resolve_model_record
+from core.models.objects import ModelInfo
 from core.repositories.stats_repository import UsageStatRecord
 from core.routers.router_auth import AuthRouter
-from core.tokenizers import Tokenizer
+from core.models.tokenizers import Tokenizer
 from openai_wrappers.types import ChatMessage, ChatPost
-
 
 litellm.verbose=False
 litellm.set_verbose = False
@@ -55,7 +55,7 @@ async def litellm_completion_stream(
             n=post.n,
             stream_options={
                 "include_usage": True,
-            }
+            },
         )
 
         async for chunk in stream:
